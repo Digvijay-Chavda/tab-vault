@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TabVault</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header>
+      <input id="q" type="search" placeholder="Search open tabs and saved sessions…" autofocus />
+    </header>
+    <section class="actions">
+      <button id="save">Save window as session</button>
+      <button id="suspend">Suspend idle now</button>
+    </section>
+    <main>
+      <h2 id="results-title">Open tabs</h2>
+      <ul id="results"></ul>
+      <h2>Saved sessions</h2>
+      <ul id="sessions"></ul>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
