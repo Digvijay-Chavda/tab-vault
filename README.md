@@ -67,7 +67,6 @@ Chrome Web Store listing text and permission justifications are in [docs/STORE_L
 | `tabGroups` | Create and name tab groups for smart grouping (group titles and colors only) |
 | `storage` | Save settings locally (and via browser sync) |
 | `alarms` | Idle check every minute, snapshots every 15 minutes (MV3 workers can't use timers) |
-| `sidePanel` | The main UI |
 
 Read the full [privacy policy](PRIVACY.md).
 
@@ -77,7 +76,7 @@ Read the full [privacy policy](PRIVACY.md).
 - The "MB freed" figure in the footer is a rough estimate (≈50 MB per tab), not a measurement.
 - Smart grouping uses a built-in list of well-known sites plus your own rules; it does not read page content, so it can't group by topic.
 - Group titles and colors are not stored in sessions or workspaces yet; restored tabs come back ungrouped.
-- Brave and Chrome are supported; Firefox is not yet (the side panel API differs).
+- Brave and Chrome are supported; Firefox is not yet (the popup works, but tab-group APIs differ).
 
 ## Develop
 
@@ -95,7 +94,7 @@ npm run zip                          # store-ready zip in .output/
 src/
   entrypoints/
     background.ts     # MV3 service worker: alarms (idle sweep, snapshots), tab activity tracking
-    sidepanel/        # Tabs / Workspaces / Sessions UI + search (plain TypeScript, textContent only)
+    popup/            # Toolbar popup: Tabs / Workspaces / Sessions UI + search (plain TypeScript, textContent only)
     options/          # Settings, backup export/import
   core/
     rules.ts          # pure suspend decision (unit tested)

@@ -70,6 +70,4 @@ export default defineBackground(() => {
     }
   });
   chrome.tabs.onRemoved.addListener((tabId) => void forget(tabId));
-
-  void chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 });

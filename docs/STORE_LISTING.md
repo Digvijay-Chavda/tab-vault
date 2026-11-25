@@ -26,7 +26,6 @@ Open source (MIT).
 - tabGroups: create and name tab groups for the smart grouping feature (group titles and colors only).
 - storage: save settings, sessions and workspaces locally; settings sync uses the browser's sync.
 - alarms: periodic idle check and snapshots (MV3 service workers cannot use timers).
-- sidePanel: the extension's main interface.
 
 **Privacy policy URL:** link to PRIVACY.md in the repository.
 

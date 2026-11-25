@@ -44,7 +44,7 @@ try {
   const beta = await ctx.newPage(); await beta.goto(`${base}/beta`);
   const panel = await ctx.newPage();
   await panel.setViewportSize({ width: 420, height: 760 });
-  await panel.goto(`chrome-extension://${extId}/sidepanel.html`);
+  await panel.goto(`chrome-extension://${extId}/popup.html`);
   await panel.bringToFront();
   await blank?.close();
 

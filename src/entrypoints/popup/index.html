@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TabVault</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header>
+      <span class="brand" id="brand" aria-hidden="true"></span>
+      <div class="search">
+        <span class="search-icon" id="search-icon" aria-hidden="true"></span>
+        <input id="q" type="search" placeholder="Search tabs, sessions, workspaces…" aria-label="Search" autofocus />
+      </div>
+      <button id="gear" class="icon" title="Settings" aria-label="Settings"></button>
+    </header>
+    <nav id="nav" role="tablist">
+      <button role="tab" data-view="tabs" aria-selected="true">Tabs <span class="count" data-count="tabs"></span></button>
+      <button role="tab" data-view="workspaces" aria-selected="false">Workspaces <span class="count" data-count="workspaces"></span></button>
+      <button role="tab" data-view="sessions" aria-selected="false">Sessions <span class="count" data-count="sessions"></span></button>
+    </nav>
+    <main id="main"></main>
+    <p id="toast" role="status" aria-live="polite"></p>
+    <footer>
+      <span id="stats"></span>
+      <span class="hint"><kbd>↑</kbd><kbd>↓</kbd> move <kbd>Enter</kbd> open</span>
+    </footer>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

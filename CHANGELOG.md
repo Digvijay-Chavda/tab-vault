@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **Toolbar popup replaces the side panel.** Clicking the TabVault icon (or Ctrl/Cmd+Shift+K) opens a compact popup; nothing docks beside your page any more. The `sidePanel` permission is gone, so the extension asks for less.
+- Redesigned UI: brand header with search icon, tab counts on every view, icon buttons, pills for active / suspended / pinned / playing / muted / duplicate tabs, themed light and dark.
+- Tab filters: All, Suspended, Playing, Pinned, Duplicates, each with a live count.
+- Per-tab quick actions on hover: pin, mute / unmute, suspend, close.
+- The popup remembers your last view and filter, keeps scroll position on refresh, and closes itself after you jump to a tab, switch workspace or restore a session.
+- "Suspend idle now" reports how many tabs it suspended.
+
 ## 1.1.1
 
 - Fixed: text typed in the "New workspace name" box could be wiped when a tab changed in the background. The side panel no longer rebuilds the Workspaces and Sessions views on tab events, and keeps your draft.

@@ -19,7 +19,6 @@ TabVault does not collect, transmit, sell or share any data. It has no server, n
 - `tabGroups`: create and name tab groups (smart grouping). Grouping decisions are made on your device from tab URLs and your own rules; nothing is sent anywhere.
 - `storage`: save the data above.
 - `alarms`: wake the background worker once a minute to check for idle tabs and every 15 minutes for snapshots.
-- `sidePanel`: show the TabVault panel.
 
 TabVault requests **no host permissions** and never reads page content.
 
