@@ -12,6 +12,8 @@ import {
 type View = 'tabs' | 'workspaces' | 'sessions';
 let view: View = 'tabs';
 let selected = 0;
+// Draft text survives re-renders (tab events rebuild the DOM; users must never lose what they are typing).
+let workspaceDraft = '';
 let actions: Array<() => void | Promise<void>> = [];
 
 const q = document.getElementById('q') as HTMLInputElement;
@@ -147,10 +149,13 @@ async function renderTabs(): Promise<HTMLElement[]> {
 async function renderWorkspaces(): Promise<HTMLElement[]> {
   const winId = await currentWindowId();
   const [wss, activeId] = await Promise.all([listWorkspaces(), getActiveWorkspaceId(winId)]);
-  const input = el('input', { type: 'text', placeholder: 'New workspace name', maxLength: 60, ariaLabel: 'Workspace name' });
+  const input = el('input', { type: 'text', placeholder: 'New workspace name', maxLength: 60, ariaLabel: 'Workspace name', value: workspaceDraft });
+  input.addEventListener('input', () => { workspaceDraft = input.value; });
   const create = async () => {
     if (!input.value.trim()) return input.focus();
-    await createWorkspace(input.value, winId);
+    const name = input.value;
+    workspaceDraft = '';
+    await createWorkspace(name, winId);
     await render();
   };
   input.addEventListener('keydown', (e) => { if (e.key === 'Enter') void create(); });
@@ -262,7 +267,12 @@ q.addEventListener('keydown', (e) => {
 document.getElementById('gear')!.addEventListener('click', () => void chrome.runtime.openOptionsPage());
 
 let timer: ReturnType<typeof setTimeout> | undefined;
-const rerenderSoon = () => { clearTimeout(timer); timer = setTimeout(() => void render(), 250); };
+// Only the tab list and search results depend on tab events; the workspace and session views must not be rebuilt under the user.
+const rerenderSoon = () => {
+  if (!q.value.trim() && view !== 'tabs') return;
+  clearTimeout(timer);
+  timer = setTimeout(() => void render(), 250);
+};
 chrome.tabs.onUpdated.addListener(rerenderSoon);
 chrome.tabs.onRemoved.addListener(rerenderSoon);
 chrome.tabs.onCreated.addListener(rerenderSoon);

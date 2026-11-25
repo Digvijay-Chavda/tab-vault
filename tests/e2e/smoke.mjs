@@ -149,6 +149,11 @@ try {
     await panel.getByText('Research').first().waitFor();
     await shot(panel, 'workspaces');
     await panel.fill('input[type=text]', 'Scratch');
+    // Regression: tab events while typing must not wipe the draft.
+    const noise = await ctx.newPage(); await noise.goto(`${base}/noise`); await noise.close();
+    await panel.bringToFront();
+    await panel.waitForTimeout(600); // longer than the panel's re-render debounce
+    assert.equal(await panel.inputValue('input[type=text]'), 'Scratch');
     await panel.getByRole('button', { name: 'Create' }).click();
     await panel.getByText('Scratch').first().waitFor();
     // Switch back to Research: window tabs are saved into Scratch first, then replaced.

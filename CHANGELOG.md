@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- Fixed: text typed in the "New workspace name" box could be wiped when a tab changed in the background. The side panel no longer rebuilds the Workspaces and Sessions views on tab events, and keeps your draft.
+- CI now runs on `master` as well as `main`.
+
 ## 1.1.0
 
 - **Smart tab grouping.** One click (or automatically, opt-in) groups a window's tabs into native browser tab groups, by your own rules first, then built-in categories (Dev, Docs, Mail, Social, Video, Shopping, News, AI...), then by site.
