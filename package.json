@@ -1,6 +1,6 @@
 {
   "name": "tabvault",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Fast, open-source, local-first tab and session manager with search.",
   "license": "MIT",
   "type": "module",
@@ -13,12 +13,15 @@
     "check": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
+    "e2e": "node tests/e2e/smoke.mjs",
+    "icons": "node scripts/make-icons.mjs",
     "postinstall": "wxt prepare"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/chrome": "^0.3.8",
     "eslint": "^10.15.0",
+    "playwright": "^1.65.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.74.0",
     "vitest": "^5.1.1",
@@ -27,5 +30,15 @@
   "dependencies": {
     "dexie": "^4.4.7",
     "minisearch": "^7.2.0"
-  }
+  },
+  "keywords": [
+    "chrome-extension",
+    "brave",
+    "manifest-v3",
+    "tab-manager",
+    "session-manager",
+    "privacy",
+    "wxt"
+  ],
+  "author": "TabVault contributors"
 }

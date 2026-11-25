@@ -1,47 +1,113 @@
+<div align="center">
+
+<img src="public/icon/128.png" width="96" alt="TabVault logo" />
+
 # TabVault
 
-Fast, open-source, **local-first** tab and session manager for Chrome and Brave.
-Suspends idle tabs, saves sessions, and searches everything you have open or saved.
+**Fast, private tab and session manager for Chrome and Brave.**
+Suspend idle tabs, switch workspaces, restore sessions, and search everything you have open or saved.
 
-> Status: early development (v0.1). Nothing leaves your browser: no accounts, no analytics, no backend.
+[![CI](../../actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+![Manifest V3](https://img.shields.io/badge/manifest-v3-4f46e5)
 
-## Features (v0.1)
+</div>
 
-- Auto-suspend idle tabs (native `tabs.discard`), skipping active, pinned, audible and whitelisted tabs
-- Save the current window as a session and restore it later
-- Side panel with instant fuzzy search across open tabs and saved sessions
-- Keyboard shortcut: `Ctrl/Cmd+Shift+K`
+<p align="center">
+  <img src="docs/screenshots/tabs.png" width="23%" alt="Tabs view" />
+  <img src="docs/screenshots/workspaces.png" width="23%" alt="Workspaces view" />
+  <img src="docs/screenshots/sessions.png" width="23%" alt="Sessions view" />
+</p>
 
-See [docs/PLAN.md](docs/PLAN.md) for the roadmap (workspaces, command palette, opt-in content indexing, sync).
+## Why TabVault
 
-## Develop
+- **Local-first and private.** No account, no server, no analytics, no remote code. It never reads page content and asks for **no host permissions**.
+- **Safe by default.** Switching workspaces always saves your current tabs first; automatic snapshots every 15 minutes are your undo button.
+- **Fast.** Native `tabs.discard` suspending, a tiny bundle (~125 KB), and typo-tolerant search over thousands of tabs.
+- **Open source** (MIT) and tested: unit tests plus an end-to-end test that drives the real extension in Chromium.
+
+## Features
+
+| | |
+|---|---|
+| **Auto-suspend** | Discards tabs idle for N minutes (default 30). Skips the active tab, pinned and audible tabs (both opt-in), browser pages and a site whitelist. |
+| **Workspaces** | Named tab sets. Click to switch; the outgoing tabs are saved into the old workspace (or an auto snapshot) before anything is closed. |
+| **Sessions** | Save a window and restore it later. Automatic snapshots (latest 10 kept) protect against crashes and accidents. |
+| **Search** | Fuzzy search across open tabs, sessions and workspaces with ↑ ↓ Enter navigation. |
+| **Duplicates** | One click closes tabs whose URL is already open in the same window. |
+| **Backup** | Export/import sessions, workspaces and settings as JSON. Imports are validated and only http(s) URLs are accepted. |
+| **Sync** | Settings follow you via your browser's own sync (`chrome.storage.sync`), if enabled. |
+| **Theming and a11y** | Light/dark, keyboard friendly, ARIA roles. |
+
+Shortcut: **Ctrl/Cmd + Shift + K** opens the panel.
+
+## Install
+
+**From a release (works in Chrome and Brave):**
+1. Download `tabvault-*-chrome.zip` from the [Releases](../../releases) page and unzip it.
+2. Open `chrome://extensions` (or `brave://extensions`), enable **Developer mode**.
+3. Click **Load unpacked** and select the unzipped folder.
+
+**From source:**
 
 ```bash
+git clone <this repo> && cd tabvault
 npm install
-npm run dev        # launches Chrome with the extension and hot reload
-npm run check && npm run lint && npm test
-npm run build      # output in .output/chrome-mv3
+npm run build        # output in .output/chrome-mv3
 ```
 
-Load unpacked in Chrome or Brave: `chrome://extensions` → Developer mode → Load unpacked → `.output/chrome-mv3`.
+Chrome Web Store listing text and permission justifications are in [docs/STORE_LISTING.md](docs/STORE_LISTING.md).
 
 ## Permissions
 
 | Permission | Why |
 |---|---|
-| `tabs` | Read tab titles/URLs and discard idle tabs |
-| `storage` | Save settings and per-tab activity |
-| `alarms` | Periodic idle check (the MV3 service worker is ephemeral) |
+| `tabs` | Read tab titles/URLs for the list and search; suspend idle tabs |
+| `storage` | Save settings locally (and via browser sync) |
+| `alarms` | Idle check every minute, snapshots every 15 minutes (MV3 workers can't use timers) |
 | `sidePanel` | The main UI |
 
-No host permissions are requested.
+Read the full [privacy policy](PRIVACY.md).
 
-## Architecture notes
+## Known limitations
 
-- All `chrome.*` listeners are registered synchronously at the top level of the service worker; state lives in `chrome.storage.session` / IndexedDB, never in memory.
-- The suspend decision is a pure function (`src/core/rules.ts`) with unit tests.
-- Sessions are stored in IndexedDB via Dexie with versioned schemas.
+- Suspending discards the page, so **unsaved form input in a suspended tab is lost** (the same as Chrome's own memory saver). Whitelist sites where this matters, or turn off auto-suspend in settings.
+- The "MB freed" figure in the footer is a rough estimate (≈50 MB per tab), not a measurement.
+- Brave and Chrome are supported; Firefox is not yet (the side panel API differs).
+
+## Develop
+
+```bash
+npm install
+npm run dev                          # Chrome with hot reload
+npm run check && npm run lint && npm test
+npm run build && npm run e2e         # set CHROMIUM_PATH to use your own Chromium
+npm run zip                          # store-ready zip in .output/
+```
+
+### Architecture
+
+```
+src/
+  entrypoints/
+    background.ts     # MV3 service worker: alarms (idle sweep, snapshots), tab activity tracking
+    sidepanel/        # Tabs / Workspaces / Sessions UI + search (plain TypeScript, textContent only)
+    options/          # Settings, backup export/import
+  core/
+    rules.ts          # pure suspend decision (unit tested)
+    activity.ts       # last-active timestamps in storage.session (the worker is ephemeral)
+    workspaces.ts     # switch = save outgoing tabs first, open new, then close old
+    sessions.ts       # sessions + auto snapshots + pruning
+    search.ts         # MiniSearch index
+    backup.ts         # validate/sanitize untrusted import files
+    settings*.ts      # settings schema, sync-with-local-fallback storage
+  storage/db.ts       # Dexie (IndexedDB) with versioned schemas
+tests/unit            # Vitest
+tests/e2e             # Playwright drives the built extension
+```
+
+Key design rules: every `chrome.*` listener is registered synchronously at the top level of the worker; no state lives in memory; untrusted page text is only rendered with `textContent`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT
+[MIT](LICENSE)

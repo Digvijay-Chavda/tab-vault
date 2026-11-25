@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TabVault settings</title>
+    <meta name="manifest.open_in_tab" content="true" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <h1>TabVault settings</h1>
+
+    <fieldset>
+      <legend>Auto-suspend</legend>
+      <label>Suspend tabs idle for
+        <input id="idle" type="number" min="0" max="10080" step="1" /> minutes <small>(0 turns auto-suspend off)</small>
+      </label>
+      <label class="check"><input id="pinned" type="checkbox" /> Also suspend pinned tabs</label>
+      <label class="check"><input id="audible" type="checkbox" /> Also suspend tabs that are playing audio</label>
+      <label>Never suspend these sites <small>(one per line; subdomains included)</small>
+        <textarea id="whitelist" rows="6" placeholder="mail.google.com&#10;docs.google.com"></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Safety net</legend>
+      <label class="check"><input id="snapshots" type="checkbox" /> Save an automatic snapshot of all open tabs every 15 minutes (latest 10 kept)</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Backup</legend>
+      <p>Export sessions, workspaces and settings to a file, or import one. Importing adds to your existing data.</p>
+      <button id="export">Export backup…</button>
+      <button id="import">Import backup…</button>
+      <input id="file" type="file" accept="application/json,.json" hidden />
+    </fieldset>
+
+    <div class="bar"><button id="save" class="primary">Save settings</button> <span id="status" role="status"></span></div>
+    <p class="privacy">TabVault stores everything on your device. Settings sync only through your browser's own sync, if enabled. No analytics, no servers.</p>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

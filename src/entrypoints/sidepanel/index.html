@@ -8,18 +8,16 @@
   </head>
   <body>
     <header>
-      <input id="q" type="search" placeholder="Search open tabs and saved sessions…" autofocus />
+      <input id="q" type="search" placeholder="Search tabs, sessions, workspaces…  (↑ ↓ Enter)" aria-label="Search" autofocus />
+      <button id="gear" class="icon" title="Settings" aria-label="Settings">⚙</button>
     </header>
-    <section class="actions">
-      <button id="save">Save window as session</button>
-      <button id="suspend">Suspend idle now</button>
-    </section>
-    <main>
-      <h2 id="results-title">Open tabs</h2>
-      <ul id="results"></ul>
-      <h2>Saved sessions</h2>
-      <ul id="sessions"></ul>
-    </main>
+    <nav id="nav" role="tablist">
+      <button role="tab" data-view="tabs" aria-selected="true">Tabs</button>
+      <button role="tab" data-view="workspaces" aria-selected="false">Workspaces</button>
+      <button role="tab" data-view="sessions" aria-selected="false">Sessions</button>
+    </nav>
+    <main id="main" aria-live="polite"></main>
+    <footer id="stats"></footer>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
