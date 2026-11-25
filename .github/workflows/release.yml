@@ -2,6 +2,12 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to create (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
 permissions:
   contents: write
 jobs:
@@ -16,5 +22,7 @@ jobs:
       - run: npm run zip
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          target_commitish: ${{ github.sha }}
           files: .output/*.zip
           generate_release_notes: true
