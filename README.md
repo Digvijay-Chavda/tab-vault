@@ -51,7 +51,7 @@ Shortcut: **Ctrl/Cmd + Shift + K** opens the panel.
 **From source:**
 
 ```bash
-git clone <this repo> && cd tabvault
+git clone https://github.com/Digvijay-Chavda/tab-vault && cd tab-vault
 npm install
 npm run build        # output in .output/chrome-mv3
 ```
