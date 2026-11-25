@@ -48,12 +48,33 @@ try {
   await panel.bringToFront();
   await blank?.close();
 
+  const until = async (fn, ms = 10000) => {
+    const end = Date.now() + ms;
+    for (;;) {
+      const v = await fn();
+      if (v) return v;
+      if (Date.now() > end) throw new Error('timed out waiting for condition');
+      await new Promise((r) => setTimeout(r, 200));
+    }
+  };
+  const groupTitles = () => sw.evaluate(async () => (await chrome.tabGroups.query({})).map((g) => g.title));
+  const groupedTabCount = () => sw.evaluate(async () => (await chrome.tabs.query({})).filter((t) => t.groupId !== -1).length);
+  const setGroupSettings = async ({ rules, auto }) => {
+    const opts = await ctx.newPage();
+    await opts.goto(`chrome-extension://${extId}/options.html`);
+    await opts.fill('#grouprules', rules);
+    await (auto ? opts.check('#autogroup') : opts.uncheck('#autogroup'));
+    await opts.click('#save');
+    await opts.getByText('Saved.').waitFor();
+    await opts.close();
+    await panel.bringToFront();
+  };
+
   const discarded = (title) => sw.evaluate(async (t) => (await chrome.tabs.query({})).find((x) => x.title?.includes(t))?.discarded, title);
 
   await step('lists open tabs', async () => {
     await panel.getByText('Alpha Page').first().waitFor();
     await panel.getByText('Beta Page').first().waitFor();
-    await shot(panel, 'tabs');
   });
 
   await step('search finds open tabs (typo tolerant)', async () => {
@@ -90,6 +111,35 @@ try {
     await panel.getByText('saved', { exact: true }).first().waitFor();
     await panel.fill('#q', '');
     await panel.getByRole('heading', { name: /^Sessions/ }).waitFor();
+  });
+
+  await step('smart grouping: rules, manual group, ungroup, auto-group', async () => {
+    await setGroupSettings({ rules: '127.0.0.1 = Local test\nnot a rule', auto: false });
+    await panel.getByRole('tab', { name: 'Tabs' }).click();
+    await panel.getByRole('button', { name: 'Group tabs' }).click();
+    await panel.getByText('Grouped 2 tabs into 1 group.').waitFor();
+    assert.deepEqual(await groupTitles(), ['Local test']);
+    await panel.locator('.chip', { hasText: 'Local test' }).first().waitFor();
+    await shot(panel, 'tabs');
+
+    // Running it again changes nothing (idempotent) and never regroups grouped tabs.
+    await panel.getByRole('button', { name: 'Group tabs' }).click();
+    await panel.getByText(/Nothing to group/).waitFor();
+    assert.equal(await groupedTabCount(), 2);
+
+    panel.once('dialog', (d) => d.accept());
+    await panel.getByRole('button', { name: 'Ungroup all' }).click();
+    await panel.getByText('Ungrouped 2 tabs.').waitFor();
+    assert.deepEqual(await groupTitles(), []);
+
+    // Auto-group: a newly loaded tab triggers grouping of every ungrouped matching tab.
+    await setGroupSettings({ rules: '127.0.0.1 = Local test', auto: true });
+    const gamma = await ctx.newPage();
+    await gamma.goto(`${base}/gamma`);
+    await until(async () => (await groupedTabCount()) === 3);
+    assert.deepEqual(await groupTitles(), ['Local test']);
+    await gamma.close();
+    await panel.bringToFront();
   });
 
   await step('creates and switches workspaces without losing tabs', async () => {

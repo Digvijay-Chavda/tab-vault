@@ -2,6 +2,7 @@ import { isWhitelisted } from '../../core/rules';
 import { getSettings } from '../../core/settings';
 import { addSuspended, estimateMb, getStats } from '../../core/stats';
 import { findDuplicateIds } from '../../core/duplicates';
+import { groupWindow, ungroupWindow } from '../../core/grouping-apply';
 import { createIndex, search, type SearchDoc } from '../../core/search';
 import { deleteSession, listSessions, restoreSession, saveCurrentWindow } from '../../core/sessions';
 import {
@@ -17,6 +18,20 @@ const q = document.getElementById('q') as HTMLInputElement;
 const main = document.getElementById('main') as HTMLElement;
 const statsEl = document.getElementById('stats') as HTMLElement;
 const nav = document.getElementById('nav') as HTMLElement;
+const toast = document.getElementById('toast') as HTMLElement;
+
+let toastTimer: ReturnType<typeof setTimeout> | undefined;
+function flash(msg: string): void {
+  toast.textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (toast.textContent = ''), 4000);
+}
+
+// Chrome's tab group colors, darkened so white chip text stays readable.
+const GROUP_HEX: Record<string, string> = {
+  grey: '#5f6368', blue: '#1a73e8', red: '#d93025', yellow: '#b06000', green: '#188038',
+  pink: '#c2185b', purple: '#8430ce', cyan: '#007b83', orange: '#c26401',
+};
 
 // ---------- tiny DOM helpers (textContent only: page titles/URLs are untrusted) ----------
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string, unknown> = {}, ...kids: (Node | string)[]): HTMLElementTagNameMap[K] {
@@ -35,7 +50,8 @@ function button(label: string, onClick: () => void | Promise<void>, opts: { titl
 }
 
 function item(opts: {
-  title: string; sub: string; icon?: string; cls?: string; badge?: string; onClick: () => void | Promise<void>; buttons?: HTMLElement[];
+  title: string; sub: string; icon?: string; cls?: string; badge?: string; chip?: { text: string; color: string };
+  onClick: () => void | Promise<void>; buttons?: HTMLElement[];
 }): HTMLLIElement {
   const li = el('li', { className: opts.cls ?? '', role: 'option' });
   if (opts.icon && /^https?:/.test(opts.icon)) {
@@ -45,6 +61,9 @@ function item(opts: {
   }
   const t = el('div', { className: 't' }, el('b', { textContent: opts.title }), el('small', { textContent: opts.sub }));
   li.append(t);
+  if (opts.chip) {
+    li.append(el('span', { className: 'chip', textContent: opts.chip.text, title: `Tab group: ${opts.chip.text}`, style: `background:${GROUP_HEX[opts.chip.color] ?? GROUP_HEX.grey}` }));
+  }
   if (opts.badge) li.append(el('span', { className: 'badge', textContent: opts.badge }));
   if (opts.buttons) li.append(...opts.buttons);
   li.addEventListener('click', () => void opts.onClick());
@@ -68,9 +87,22 @@ async function currentWindowId(): Promise<number> {
 }
 
 async function renderTabs(): Promise<HTMLElement[]> {
-  const tabs = await chrome.tabs.query({});
+  const [tabs, groups] = await Promise.all([chrome.tabs.query({}), chrome.tabGroups.query({})]);
+  const groupById = new Map(groups.map((g) => [g.id, g]));
   const dupes = findDuplicateIds(tabs);
+  const winId = await currentWindowId();
   const bar = el('div', { className: 'toolbar' },
+    button('Group tabs', async () => {
+      const r = await groupWindow(winId);
+      flash(r.groups ? `Grouped ${r.tabs} tabs into ${r.groups} group${r.groups === 1 ? '' : 's'}.` : 'Nothing to group: no site or category has enough ungrouped tabs yet.');
+      await render();
+    }, { title: 'Group this window\'s ungrouped tabs by your rules, category, or site' }),
+    button('Ungroup all', async () => {
+      if (!confirm('Remove all tab groups in this window? (Your tabs stay open.)')) return;
+      const n = await ungroupWindow(winId);
+      flash(n ? `Ungrouped ${n} tabs.` : 'No grouped tabs in this window.');
+      await render();
+    }, { title: 'Remove every tab group in this window' }),
     button('Suspend idle now', async () => {
       const [targets, { whitelist }] = await Promise.all([
         chrome.tabs.query({ active: false, pinned: false, audible: false, discarded: false }),
@@ -98,6 +130,9 @@ async function renderTabs(): Promise<HTMLElement[]> {
       icon: t.favIconUrl,
       cls: t.discarded ? 'discarded' : '',
       badge: t.discarded ? 'suspended' : t.active ? 'active' : undefined,
+      chip: t.groupId !== undefined && groupById.has(t.groupId)
+        ? { text: groupById.get(t.groupId)!.title || 'Group', color: groupById.get(t.groupId)!.color }
+        : undefined,
       onClick: async () => {
         if (t.id === undefined) return;
         await chrome.tabs.update(t.id, { active: true });

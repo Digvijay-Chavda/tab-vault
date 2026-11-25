@@ -11,6 +11,7 @@ Suspend idle tabs, save sessions, organize workspaces and search everything. Pri
 TabVault keeps a hundred tabs from slowing your browser down.
 
 • Auto-suspend idle tabs to free memory (pinned, audible and whitelisted tabs are protected)
+• Smart tab grouping: one click groups tabs by your rules, category or site (optional auto-grouping); your own groups and pinned tabs are never touched
 • Workspaces: switch between sets of tabs; your current tabs are always saved first
 • Sessions: save a window and restore it later; automatic snapshots every 15 minutes act as a safety net
 • Instant fuzzy search across open tabs, saved sessions and workspaces, with keyboard navigation (Ctrl/Cmd+Shift+K opens the panel)
@@ -22,6 +23,7 @@ Open source (MIT).
 
 **Permission justifications**
 - tabs: read tab titles/URLs to list and search them, and to suspend idle tabs.
+- tabGroups: create and name tab groups for the smart grouping feature (group titles and colors only).
 - storage: save settings, sessions and workspaces locally; settings sync uses the browser's sync.
 - alarms: periodic idle check and snapshots (MV3 service workers cannot use timers).
 - sidePanel: the extension's main interface.

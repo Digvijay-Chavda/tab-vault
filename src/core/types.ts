@@ -7,6 +7,19 @@ export interface Settings {
   whitelist: string[];
   /** Automatically snapshot all open tabs every 15 minutes (keeps the latest 10). */
   autoSnapshots: boolean;
+  /** Automatically put newly loaded tabs into smart groups (off by default). */
+  autoGroup: boolean;
+  /** A site-based group is only created when at least this many tabs share it. */
+  minGroupSize: number;
+  /** User rules that name the group for a site; they win over built-in categories. */
+  groupRules: GroupRule[];
+}
+
+export interface GroupRule {
+  /** Hostname; subdomains match too. */
+  host: string;
+  /** Group title. */
+  name: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -15,6 +28,9 @@ export const DEFAULT_SETTINGS: Settings = {
   suspendAudible: false,
   whitelist: [],
   autoSnapshots: true,
+  autoGroup: false,
+  minGroupSize: 2,
+  groupRules: [],
 };
 
 /** Minimal tab shape the rules engine needs; keeps logic testable without chrome.*. */
@@ -28,6 +44,8 @@ export interface TabLike {
   discarded?: boolean;
   windowId?: number;
   index?: number;
+  /** -1 (TAB_GROUP_ID_NONE) or undefined means the tab is not in a group. */
+  groupId?: number;
 }
 
 export interface SavedTab {

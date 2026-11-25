@@ -5,7 +5,7 @@ export default defineConfig({
   manifest: {
     name: 'TabVault',
     description: 'Fast, private tab and session manager with search. Suspends idle tabs, saves sessions, finds anything.',
-    permissions: ['tabs', 'storage', 'alarms', 'sidePanel'],
+    permissions: ['tabs', 'tabGroups', 'storage', 'alarms', 'sidePanel'],
     action: { default_title: 'Open TabVault' },
     commands: {
       _execute_action: {

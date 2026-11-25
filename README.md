@@ -31,6 +31,7 @@ Suspend idle tabs, switch workspaces, restore sessions, and search everything yo
 | | |
 |---|---|
 | **Auto-suspend** | Discards tabs idle for N minutes (default 30). Skips the active tab, pinned and audible tabs (both opt-in), browser pages and a site whitelist. |
+| **Smart grouping** | One click (or automatic, opt-in) groups tabs into native tab groups: your rules first, then categories (Dev, Mail, Video…), then by site. Pinned and already-grouped tabs are never touched. Runs entirely on-device, no AI service. |
 | **Workspaces** | Named tab sets. Click to switch; the outgoing tabs are saved into the old workspace (or an auto snapshot) before anything is closed. |
 | **Sessions** | Save a window and restore it later. Automatic snapshots (latest 10 kept) protect against crashes and accidents. |
 | **Search** | Fuzzy search across open tabs, sessions and workspaces with ↑ ↓ Enter navigation. |
@@ -63,6 +64,7 @@ Chrome Web Store listing text and permission justifications are in [docs/STORE_L
 | Permission | Why |
 |---|---|
 | `tabs` | Read tab titles/URLs for the list and search; suspend idle tabs |
+| `tabGroups` | Create and name tab groups for smart grouping (group titles and colors only) |
 | `storage` | Save settings locally (and via browser sync) |
 | `alarms` | Idle check every minute, snapshots every 15 minutes (MV3 workers can't use timers) |
 | `sidePanel` | The main UI |
@@ -73,6 +75,8 @@ Read the full [privacy policy](PRIVACY.md).
 
 - Suspending discards the page, so **unsaved form input in a suspended tab is lost** (the same as Chrome's own memory saver). Whitelist sites where this matters, or turn off auto-suspend in settings.
 - The "MB freed" figure in the footer is a rough estimate (≈50 MB per tab), not a measurement.
+- Smart grouping uses a built-in list of well-known sites plus your own rules; it does not read page content, so it can't group by topic.
+- Group titles and colors are not stored in sessions or workspaces yet; restored tabs come back ungrouped.
 - Brave and Chrome are supported; Firefox is not yet (the side panel API differs).
 
 ## Develop
@@ -99,6 +103,8 @@ src/
     workspaces.ts     # switch = save outgoing tabs first, open new, then close old
     sessions.ts       # sessions + auto snapshots + pruning
     search.ts         # MiniSearch index
+    grouping.ts       # pure smart-grouping planner (rules > category > site), unit tested
+    grouping-apply.ts # applies a plan with chrome.tabGroups
     backup.ts         # validate/sanitize untrusted import files
     settings*.ts      # settings schema, sync-with-local-fallback storage
   storage/db.ts       # Dexie (IndexedDB) with versioned schemas

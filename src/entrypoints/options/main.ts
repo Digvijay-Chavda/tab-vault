@@ -1,5 +1,6 @@
 import { exportBackup, importBackup } from '../../core/data-io';
 import { getSettings, saveSettings } from '../../core/settings';
+import { formatGroupRules, parseGroupRules } from '../../core/settings-schema';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const status = $('status');
@@ -15,6 +16,9 @@ async function load(): Promise<void> {
   $<HTMLInputElement>('audible').checked = s.suspendAudible;
   $<HTMLInputElement>('snapshots').checked = s.autoSnapshots;
   $<HTMLTextAreaElement>('whitelist').value = s.whitelist.join('\n');
+  $<HTMLInputElement>('autogroup').checked = s.autoGroup;
+  $<HTMLInputElement>('mingroup').value = String(s.minGroupSize);
+  $<HTMLTextAreaElement>('grouprules').value = formatGroupRules(s.groupRules);
 }
 
 $('save').addEventListener('click', async () => {
@@ -24,6 +28,9 @@ $('save').addEventListener('click', async () => {
     suspendAudible: $<HTMLInputElement>('audible').checked,
     autoSnapshots: $<HTMLInputElement>('snapshots').checked,
     whitelist: $<HTMLTextAreaElement>('whitelist').value.split('\n'),
+    autoGroup: $<HTMLInputElement>('autogroup').checked,
+    minGroupSize: Number($<HTMLInputElement>('mingroup').value),
+    groupRules: parseGroupRules($<HTMLTextAreaElement>('grouprules').value),
   });
   await load(); // show the sanitized values that were actually stored
   say(saved.idleMinutes === 0 ? 'Saved. Auto-suspend is off.' : 'Saved.');

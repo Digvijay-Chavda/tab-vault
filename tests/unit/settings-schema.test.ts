@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeHost, sanitizeSettings } from '../../src/core/settings-schema';
+import { formatGroupRules, normalizeHost, parseGroupRules, sanitizeSettings } from '../../src/core/settings-schema';
 import { DEFAULT_SETTINGS } from '../../src/core/types';
 
 describe('normalizeHost', () => {
@@ -32,5 +32,25 @@ describe('sanitizeSettings', () => {
   });
   it('ignores wrongly typed booleans', () => {
     expect(sanitizeSettings({ suspendPinned: 'yes' }).suspendPinned).toBe(false);
+  });
+});
+
+describe('grouping settings', () => {
+  it('parses "host = name" lines, skipping invalid and duplicate hosts', () => {
+    const rules = parseGroupRules('GitHub.com = Work\nbad line\n= nothing\nhttps://github.com/x = Dupe\nexample.com=  \nfoo.org = Foo');
+    expect(rules).toEqual([{ host: 'github.com', name: 'Work' }, { host: 'foo.org', name: 'Foo' }]);
+  });
+  it('round-trips through format and parse', () => {
+    const rules = [{ host: 'a.com', name: 'A' }, { host: 'b.com', name: 'B B' }];
+    expect(parseGroupRules(formatGroupRules(rules))).toEqual(rules);
+  });
+  it('clamps minGroupSize and defaults autoGroup off', () => {
+    expect(sanitizeSettings({ minGroupSize: 0 }).minGroupSize).toBe(2);
+    expect(sanitizeSettings({ minGroupSize: 99 }).minGroupSize).toBe(10);
+    expect(sanitizeSettings({}).autoGroup).toBe(false);
+  });
+  it('truncates long group names and rejects non-array rules', () => {
+    expect(sanitizeSettings({ groupRules: [{ host: 'a.com', name: 'x'.repeat(100) }] }).groupRules[0]?.name).toHaveLength(30);
+    expect(sanitizeSettings({ groupRules: 'nope' }).groupRules).toEqual([]);
   });
 });

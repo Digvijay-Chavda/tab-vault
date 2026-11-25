@@ -1,5 +1,6 @@
 import { forget, getAll, seed, touch } from '../core/activity';
 import { shouldSuspend } from '../core/rules';
+import { groupWindow } from '../core/grouping-apply';
 import { saveSnapshot } from '../core/sessions';
 import { getSettings } from '../core/settings';
 import { addSuspended } from '../core/stats';
@@ -25,6 +26,22 @@ async function sweep(): Promise<void> {
   await addSuspended(count);
 }
 
+// Auto-grouping: coalesce bursts of page loads into one pass per window, one window at a time.
+const pendingGroupWindows = new Set<number>();
+let groupChain: Promise<unknown> = Promise.resolve();
+
+function scheduleAutoGroup(windowId: number): void {
+  if (pendingGroupWindows.has(windowId)) return;
+  pendingGroupWindows.add(windowId);
+  groupChain = groupChain
+    .then(async () => {
+      await new Promise((r) => setTimeout(r, 500)); // let a burst of tabs finish loading
+      pendingGroupWindows.delete(windowId);
+      if ((await getSettings()).autoGroup) await groupWindow(windowId);
+    })
+    .catch(() => pendingGroupWindows.delete(windowId)); // window closed mid-flight, etc.
+}
+
 async function init(): Promise<void> {
   await chrome.alarms.create(SWEEP_ALARM, { periodInMinutes: 1 });
   await chrome.alarms.create(SNAPSHOT_ALARM, { periodInMinutes: 15 });
@@ -45,8 +62,12 @@ export default defineBackground(() => {
   });
 
   chrome.tabs.onActivated.addListener(({ tabId }) => void touch(tabId));
-  chrome.tabs.onUpdated.addListener((tabId, info) => {
+  chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
     if (info.status === 'complete' || info.audible) void touch(tabId);
+    // Only page loads trigger grouping; the group change itself fires a groupId update, which is ignored (no loop).
+    if (info.status === 'complete' && tab.windowId !== undefined) {
+      void getSettings().then((s) => (s.autoGroup ? scheduleAutoGroup(tab.windowId) : undefined));
+    }
   });
   chrome.tabs.onRemoved.addListener((tabId) => void forget(tabId));
 

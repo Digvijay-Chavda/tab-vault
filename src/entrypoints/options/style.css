@@ -8,6 +8,7 @@ label { display: block; margin: 10px 0; }
 label.check { display: flex; gap: 8px; align-items: center; }
 small, .privacy { color: var(--muted); }
 input[type=number] { width: 90px; }
+code { background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 1px 4px; border-radius: 4px; }
 input[type=number], textarea { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; font: inherit; }
 textarea { width: 100%; font-family: ui-monospace, monospace; }
 button { padding: 7px 14px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; cursor: pointer; font: inherit; }

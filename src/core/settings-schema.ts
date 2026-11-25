@@ -1,6 +1,36 @@
-import { DEFAULT_SETTINGS, type Settings } from './types';
+import { DEFAULT_SETTINGS, type GroupRule, type Settings } from './types';
 
 export const MAX_IDLE_MINUTES = 7 * 24 * 60;
+export const MAX_GROUP_RULES = 100;
+
+/** Parses lines like "github.com = Work" into rules. Invalid lines are skipped. */
+export function parseGroupRules(text: string): GroupRule[] {
+  return sanitizeGroupRules(
+    text.split('\n').map((line) => {
+      const i = line.indexOf('=');
+      return i < 0 ? null : { host: line.slice(0, i), name: line.slice(i + 1) };
+    }),
+  );
+}
+
+export function formatGroupRules(rules: GroupRule[]): string {
+  return rules.map((r) => `${r.host} = ${r.name}`).join('\n');
+}
+
+export function sanitizeGroupRules(raw: unknown): GroupRule[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: GroupRule[] = [];
+  for (const r of raw) {
+    const host = normalizeHost(typeof (r as GroupRule)?.host === 'string' ? (r as GroupRule).host : '');
+    const name = typeof (r as GroupRule)?.name === 'string' ? (r as GroupRule).name.trim().slice(0, 30) : '';
+    if (!host || !name || seen.has(host)) continue;
+    seen.add(host);
+    out.push({ host, name });
+    if (out.length >= MAX_GROUP_RULES) break;
+  }
+  return out;
+}
 
 /** Accepts "example.com", "https://Example.com/path", "*.example.com" and returns "example.com". */
 export function normalizeHost(input: string): string {
@@ -27,5 +57,10 @@ export function sanitizeSettings(raw: unknown): Settings {
     suspendAudible: typeof r.suspendAudible === 'boolean' ? r.suspendAudible : DEFAULT_SETTINGS.suspendAudible,
     whitelist,
     autoSnapshots: typeof r.autoSnapshots === 'boolean' ? r.autoSnapshots : DEFAULT_SETTINGS.autoSnapshots,
+    autoGroup: typeof r.autoGroup === 'boolean' ? r.autoGroup : DEFAULT_SETTINGS.autoGroup,
+    minGroupSize: Number.isFinite(Number(r.minGroupSize))
+      ? Math.min(10, Math.max(2, Math.round(Number(r.minGroupSize))))
+      : DEFAULT_SETTINGS.minGroupSize,
+    groupRules: sanitizeGroupRules(r.groupRules),
   };
 }
