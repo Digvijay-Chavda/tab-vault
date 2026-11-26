@@ -11,3 +11,8 @@
 ## Project
 Chrome/Brave MV3 extension built with WXT + TypeScript. See CONTRIBUTING.md. Before pushing run:
 `npm run check && npm run lint && npm test` (and `npm run build && npm run e2e` for UI changes).
+
+## Project memory
+Read `.claude/README.md` first: it indexes `.claude/project-state.md` (what is built and verified), `.claude/architecture.md`
+(code map, data model), `.claude/conventions.md` (workflow, sandbox quirks) and `.claude/roadmap.md`. Slash commands:
+`/verify` (all checks) and `/release <version>`. Keep those files current when you ship.
