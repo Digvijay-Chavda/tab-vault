@@ -26,7 +26,7 @@ Suspend idle tabs, switch workspaces, restore sessions, and search everything yo
 
 - **Local-first and private.** No account, no server, no analytics, no remote code. It never reads page content and asks for **no host permissions**.
 - **Safe by default.** Switching workspaces always saves your current tabs first; automatic snapshots every 15 minutes are your undo button.
-- **Fast.** Native `tabs.discard` suspending, a tiny bundle (~125 KB), and typo-tolerant search over thousands of tabs.
+- **Fast.** Native `tabs.discard` suspending, a small bundle (about 115 KB zipped), and typo-tolerant search over thousands of tabs.
 - **Open source** (MIT) and tested: unit tests plus an end-to-end test that drives the real extension in Chromium.
 
 ## Features
@@ -46,7 +46,7 @@ Suspend idle tabs, switch workspaces, restore sessions, and search everything yo
 | **Scheduled workspaces** | Open a workspace automatically at a set time on chosen days, in a new window. |
 | **Archive stale tabs** | Opt-in: tabs you have not opened for N days are saved into an Archive session and closed. |
 | **Insights** | Open tabs, windows, suspended and duplicate counts, top sites, and the tabs you have left alone longest. |
-| **Search** | Fuzzy search across open tabs, sessions and workspaces with ↑ ↓ Enter navigation. |
+| **Search** | Typo-tolerant search across open tabs, sessions, workspaces, the stash, and your notes and `#tags`, with ↑ ↓ Enter navigation. |
 | **Duplicates** | The toolbar icon shows a badge with the number of duplicate tabs (turn it off in settings). One click closes duplicates, or opt in to switching to the existing tab instead of opening a copy. |
 | **Recently closed** | The Closed tab lists tabs and windows you closed lately; click to reopen them. |
 | **Backup** | Export/import sessions, workspaces, stash, notes and settings as JSON, or save a backup file automatically every N days. Imports are validated and only http(s) URLs are accepted. |
@@ -90,7 +90,6 @@ Read the full [privacy policy](PRIVACY.md).
 - Suspending discards the page, so **unsaved form input in a suspended tab is lost** (the same as Chrome's own memory saver). Whitelist sites where this matters, or turn off auto-suspend in settings.
 - The "MB freed" figure in the footer is a rough estimate (≈50 MB per tab), not a measurement.
 - Smart grouping uses a built-in list of well-known sites plus your own rules; it does not read page content, so it can't group by topic.
-- Group titles and colors are not stored in sessions or workspaces yet; restored tabs come back ungrouped.
 - Brave and Chrome are supported. A Firefox build exists (`npm run build:firefox`) but is untested: Firefox's tab-group support differs, so grouping features hide themselves where the browser has none.
 - Memory figures are estimates; browsers do not let extensions read real per-tab memory.
 - Scheduled workspaces, auto-archive and scheduled backups run while the browser is open.
@@ -111,25 +110,38 @@ npm run build:firefox                # experimental Firefox (MV3) build
 ```
 src/
   entrypoints/
-    background.ts     # MV3 service worker: alarms (idle sweep, snapshots), tab activity tracking
-    popup/            # Toolbar popup: Tabs / Workspaces / Sessions / Closed views + search (plain TypeScript, textContent only)
-    options/          # Settings, backup export/import
-  core/
-    rules.ts          # pure suspend decision (unit tested)
+    background.ts     # MV3 service worker: idle sweep, workspace schedules, 15-min housekeeping (snapshot, archive,
+                      # backup), duplicate badge, switch-to-existing-tab, keyboard commands
+    popup/            # Toolbar popup (plain TypeScript, textContent only)
+      main.ts         #   views (Tabs, Stash, Workspaces, Sessions, Closed, Insights, Help), command palette, search
+      dom.ts          #   icons, element helpers, context menu, inline form dialog
+    options/          # Settings, backup export/import/back up now
+  core/               # Logic; pure where possible (unit tested), chrome.* calls kept thin
+    rules.ts          # pure suspend decision
     activity.ts       # last-active timestamps in storage.session (the worker is ephemeral)
-    workspaces.ts     # switch = save outgoing tabs first, open new, then close old
-    sessions.ts       # sessions + auto snapshots + pruning
-    search.ts         # MiniSearch index
-    grouping.ts       # pure smart-grouping planner (rules > category > site), unit tested
+    grouping.ts       # pure smart-grouping planner (rules > category > site)
     grouping-apply.ts # applies a plan with chrome.tabGroups
+    duplicates.ts     # duplicate detection
+    tab-plans.ts      # pure plans: sort, panic, archive, insights, switch-to-existing
+    tab-actions.ts    # panic, sort, merge windows, move tab, whitelist site, archive stale tabs
+    workspaces.ts     # switch = save outgoing tabs first, open new, then close old; open in a new window
+    sessions.ts       # sessions, snapshots, pruning; saves and restores tab groups
+    stash.ts          # read-later stash (saved first, then closed)
+    notes.ts          # notes and tags (pure);  notes-store.ts: storage
+    schedule.ts       # workspace schedules (pure due-time logic + storage)
+    closed.ts         # recently closed tabs and windows
+    search.ts         # MiniSearch index (titles, URLs, notes, tags)
     backup.ts         # validate/sanitize untrusted import files
+    backup-schedule.ts# scheduled and on-demand backup files
+    data-io.ts        # export/import against the database
     settings*.ts      # settings schema, sync-with-local-fallback storage
   storage/db.ts       # Dexie (IndexedDB) with versioned schemas
 tests/unit            # Vitest
-tests/e2e             # Playwright drives the built extension
+tests/e2e             # Playwright drives the built extension in real Chromium
+.claude/              # project memory for AI assistants: state, architecture, conventions, roadmap
 ```
 
-Key design rules: every `chrome.*` listener is registered synchronously at the top level of the worker; no state lives in memory; untrusted page text is only rendered with `textContent`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Key design rules: every `chrome.*` listener is registered synchronously at the top level of the worker; no state lives in memory; untrusted page text is only rendered with `textContent`. See [CONTRIBUTING.md](CONTRIBUTING.md); the code map, data model and project state are written up in [.claude/](.claude/README.md).
 
 ## License
 

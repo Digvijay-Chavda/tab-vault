@@ -28,7 +28,7 @@ TabVault requests **no host permissions** and never reads page content.
 
 ## Your control
 
-Delete any session or workspace in the panel. Remove all data by uninstalling the extension. Export your data at any time from the settings page; the file is created locally and never uploaded.
+Delete any session, workspace, stashed tab or note in the popup. Remove all data by uninstalling the extension. Export your data at any time from the settings page; the file is created locally and never uploaded.
 
 ## Contact
 
