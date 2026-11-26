@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.0
 
 - **Recently closed tabs.** A new **Closed** view lists tabs and windows you closed lately; click one to reopen it. Adds the `sessions` permission, which only reads the browser's own list on your device.
 - **Duplicate tab warning.** The toolbar icon shows a badge with how many tabs repeat another tab's address in the same window. Turn it off under Settings > Duplicate tabs.
