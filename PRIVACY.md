@@ -1,6 +1,6 @@
 # TabVault privacy policy
 
-_Last updated: 2026-11-25 (v1.1.0)_
+_Last updated: 2026-11-26 (v1.3.0)_
 
 TabVault does not collect, transmit, sell or share any data. It has no server, no accounts, no analytics and no remote code.
 
@@ -9,9 +9,11 @@ TabVault does not collect, transmit, sell or share any data. It has no server, n
 | Data | Where | Why |
 |---|---|---|
 | Settings (idle time, whitelist, grouping rules, toggles) | `chrome.storage.local`, and `chrome.storage.sync` | So your preferences persist. `storage.sync` is your browser's own sync service (e.g. your Google account); TabVault never sees or controls it. |
-| Saved sessions, workspaces, automatic snapshots (tab titles, URLs, favicon URLs) | IndexedDB on your device | Restore and search. |
+| Saved sessions, workspaces, automatic snapshots, archived and stashed tabs (titles, URLs, favicon URLs, tab group names and colors) | IndexedDB on your device | Restore and search. |
+| Notes and tags you add to pages | IndexedDB on your device | Find pages again. |
+| Workspace schedules and the time of the last backup | `chrome.storage.local` | Open workspaces on time and run scheduled backups. |
 | Per-tab "last active" timestamps | `chrome.storage.session` (memory only, cleared when the browser closes) | Decide which tabs are idle. |
-| A counter of how many tabs were suspended | `chrome.storage.local` | Shown in the panel footer. |
+| A counter of how many tabs were suspended | `chrome.storage.local` | Shown in the popup footer. |
 
 ## Permissions
 
@@ -19,6 +21,7 @@ TabVault does not collect, transmit, sell or share any data. It has no server, n
 - `tabGroups`: create and name tab groups (smart grouping). Grouping decisions are made on your device from tab URLs and your own rules; nothing is sent anywhere.
 - `storage`: save the data above.
 - `sessions`: list your recently closed tabs and windows so you can reopen them. This reads the browser's own list on your device; nothing is stored or sent.
+- `downloads`: write a backup file to your Downloads folder when you press "Back up now" or turn on scheduled backups. Files are created locally and never uploaded.
 - `alarms`: wake the background worker once a minute to check for idle tabs and every 15 minutes for snapshots.
 
 TabVault requests **no host permissions** and never reads page content.

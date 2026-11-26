@@ -1,5 +1,6 @@
 import { sanitizeSettings } from './settings-schema';
-import type { SavedTab, Session, Settings, Workspace } from './types';
+import { sanitizeNote } from './notes';
+import type { NoteEntry, SavedTab, Session, Settings, StashItem, Workspace } from './types';
 
 export const BACKUP_VERSION = 1;
 
@@ -10,10 +11,14 @@ export interface BackupFile {
   settings: Settings;
   sessions: Session[];
   workspaces: Workspace[];
+  stash: StashItem[];
+  notes: NoteEntry[];
 }
 
-export function buildBackup(settings: Settings, sessions: Session[], workspaces: Workspace[], now = Date.now()): BackupFile {
-  return { app: 'tabvault', version: BACKUP_VERSION, exportedAt: now, settings, sessions, workspaces };
+export function buildBackup(
+  settings: Settings, sessions: Session[], workspaces: Workspace[], now = Date.now(), stash: StashItem[] = [], notes: NoteEntry[] = [],
+): BackupFile {
+  return { app: 'tabvault', version: BACKUP_VERSION, exportedAt: now, settings, sessions, workspaces, stash, notes };
 }
 
 function safeUrl(u: unknown): string | null {
@@ -24,6 +29,16 @@ function safeUrl(u: unknown): string | null {
   } catch {
     return null;
   }
+}
+
+const COLORS = ['grey', 'blue', 'red', 'yellow', 'green', 'pink', 'purple', 'cyan', 'orange'];
+
+function cleanGroup(raw: unknown): { group?: { title: string; color: string } } {
+  const g = raw as { title?: unknown; color?: unknown } | null;
+  if (!g || typeof g !== 'object') return {};
+  const title = typeof g.title === 'string' ? g.title.trim().slice(0, 30) : '';
+  const color = typeof g.color === 'string' && COLORS.includes(g.color) ? g.color : 'grey';
+  return { group: { title, color } };
 }
 
 function cleanTabs(raw: unknown): SavedTab[] {
@@ -38,6 +53,7 @@ function cleanTabs(raw: unknown): SavedTab[] {
       title: typeof title === 'string' && title ? title.slice(0, 300) : url,
       favIconUrl: safeUrl((t as { favIconUrl?: unknown }).favIconUrl) ?? undefined,
       pinned: (t as { pinned?: unknown }).pinned === true,
+      ...cleanGroup((t as { group?: unknown }).group),
     });
   }
   return out;
@@ -70,7 +86,7 @@ export function parseBackup(text: string): BackupFile {
         name: str((s as Session)?.name, 'Imported session'),
         createdAt: ts((s as Session)?.createdAt, now),
         tabs: cleanTabs((s as Session)?.tabs),
-        kind: (s as Session)?.kind === 'auto' ? ('auto' as const) : ('manual' as const),
+        kind: (['auto', 'archive'] as const).find((k) => k === (s as Session)?.kind) ?? ('manual' as const),
       }))
       .filter((s) => s.tabs.length > 0),
     workspaces: (Array.isArray(r.workspaces) ? r.workspaces : [])
@@ -80,5 +96,14 @@ export function parseBackup(text: string): BackupFile {
         updatedAt: ts((w as Workspace)?.updatedAt, now),
         tabs: cleanTabs((w as Workspace)?.tabs),
       })),
+    stash: (Array.isArray(r.stash) ? r.stash : []).flatMap((x) => {
+      const url = safeUrl((x as StashItem)?.url);
+      const title = (x as StashItem)?.title;
+      return url ? [{ url, title: typeof title === 'string' && title ? title.slice(0, 300) : url, favIconUrl: safeUrl((x as StashItem)?.favIconUrl) ?? undefined, createdAt: ts((x as StashItem)?.createdAt, now) }] : [];
+    }),
+    notes: (Array.isArray(r.notes) ? r.notes : []).flatMap((n) => {
+      const e = sanitizeNote(n);
+      return e ? [e] : [];
+    }),
   };
 }

@@ -1,3 +1,4 @@
+import { backupNow } from '../../core/backup-schedule';
 import { exportBackup, importBackup } from '../../core/data-io';
 import { getSettings, saveSettings } from '../../core/settings';
 import { formatGroupRules, parseGroupRules } from '../../core/settings-schema';
@@ -16,6 +17,12 @@ async function load(): Promise<void> {
   $<HTMLInputElement>('audible').checked = s.suspendAudible;
   $<HTMLInputElement>('snapshots').checked = s.autoSnapshots;
   $<HTMLInputElement>('warndupes').checked = s.warnDuplicates;
+  $<HTMLSelectElement>('dupeaction').value = s.dupeAction;
+  $<HTMLInputElement>('archivedays').value = String(s.archiveDays);
+  $<HTMLInputElement>('backupdays').value = String(s.backupDays);
+  $<HTMLSelectElement>('theme').value = s.theme;
+  $<HTMLSelectElement>('density').value = s.density;
+  document.documentElement.dataset.theme = s.theme;
   $<HTMLTextAreaElement>('whitelist').value = s.whitelist.join('\n');
   $<HTMLInputElement>('autogroup').checked = s.autoGroup;
   $<HTMLInputElement>('mingroup').value = String(s.minGroupSize);
@@ -29,6 +36,11 @@ $('save').addEventListener('click', async () => {
     suspendAudible: $<HTMLInputElement>('audible').checked,
     autoSnapshots: $<HTMLInputElement>('snapshots').checked,
     warnDuplicates: $<HTMLInputElement>('warndupes').checked,
+    dupeAction: $<HTMLSelectElement>('dupeaction').value as 'badge' | 'switch',
+    archiveDays: Number($<HTMLInputElement>('archivedays').value),
+    backupDays: Number($<HTMLInputElement>('backupdays').value),
+    theme: $<HTMLSelectElement>('theme').value as 'system' | 'light' | 'dark',
+    density: $<HTMLSelectElement>('density').value as 'comfortable' | 'compact',
     whitelist: $<HTMLTextAreaElement>('whitelist').value.split('\n'),
     autoGroup: $<HTMLInputElement>('autogroup').checked,
     minGroupSize: Number($<HTMLInputElement>('mingroup').value),
@@ -48,6 +60,14 @@ $('export').addEventListener('click', async () => {
   URL.revokeObjectURL(a.href);
 });
 
+$('backupnow').addEventListener('click', async () => {
+  try {
+    say(`Saved ${await backupNow()} in your Downloads folder.`);
+  } catch {
+    say('Could not save the backup file.');
+  }
+});
+
 $('import').addEventListener('click', () => $<HTMLInputElement>('file').click());
 $<HTMLInputElement>('file').addEventListener('change', async (e) => {
   const input = e.target as HTMLInputElement;
@@ -57,7 +77,7 @@ $<HTMLInputElement>('file').addEventListener('change', async (e) => {
   try {
     const r = await importBackup(await file.text());
     await load();
-    say(`Imported ${r.sessions} sessions and ${r.workspaces} workspaces.`);
+    say(`Imported ${r.sessions} sessions and ${r.workspaces} workspaces (plus ${r.stash} stashed tabs and ${r.notes} notes).`);
   } catch (err) {
     say(err instanceof Error ? err.message : 'Import failed.');
   }

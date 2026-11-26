@@ -1,3 +1,7 @@
+export type DupeAction = 'badge' | 'switch';
+export type Theme = 'system' | 'light' | 'dark';
+export type Density = 'comfortable' | 'compact';
+
 export interface Settings {
   /** Minutes of inactivity before a tab is discarded. 0 disables auto-suspend. */
   idleMinutes: number;
@@ -13,6 +17,14 @@ export interface Settings {
   minGroupSize: number;
   /** Show the number of duplicate tabs as a badge on the toolbar icon. */
   warnDuplicates: boolean;
+  /** What to do when a page you open is already open in the same window. */
+  dupeAction: DupeAction;
+  /** Save and close tabs not opened for this many days into an archive session. 0 turns it off. */
+  archiveDays: number;
+  /** Download a backup file every this many days. 0 turns it off. */
+  backupDays: number;
+  theme: Theme;
+  density: Density;
   /** User rules that name the group for a site; they win over built-in categories. */
   groupRules: GroupRule[];
 }
@@ -33,6 +45,11 @@ export const DEFAULT_SETTINGS: Settings = {
   autoGroup: false,
   minGroupSize: 2,
   warnDuplicates: true,
+  dupeAction: 'badge',
+  archiveDays: 0,
+  backupDays: 0,
+  theme: 'system',
+  density: 'comfortable',
   groupRules: [],
 };
 
@@ -49,6 +66,25 @@ export interface TabLike {
   index?: number;
   /** -1 (TAB_GROUP_ID_NONE) or undefined means the tab is not in a group. */
   groupId?: number;
+  /** Epoch ms of the last time the tab was in the foreground (Chrome 121+). */
+  lastAccessed?: number;
+}
+
+/** A tab parked in the stash (read-later list). */
+export interface StashItem {
+  id?: number;
+  url: string;
+  title: string;
+  favIconUrl?: string;
+  createdAt: number;
+}
+
+/** A note and tags attached to an address (shared by every tab with that address). */
+export interface NoteEntry {
+  key: string;
+  note: string;
+  tags: string[];
+  updatedAt: number;
 }
 
 export interface SavedTab {
@@ -56,6 +92,13 @@ export interface SavedTab {
   title: string;
   favIconUrl?: string;
   pinned?: boolean;
+  /** Tab group this tab belonged to when it was saved. */
+  group?: SavedGroup;
+}
+
+export interface SavedGroup {
+  title: string;
+  color: string;
 }
 
 export interface Session {
@@ -64,7 +107,7 @@ export interface Session {
   createdAt: number;
   tabs: SavedTab[];
   /** 'auto' sessions are periodic snapshots and are pruned automatically. */
-  kind?: 'manual' | 'auto';
+  kind?: 'manual' | 'auto' | 'archive';
 }
 
 export interface Workspace {

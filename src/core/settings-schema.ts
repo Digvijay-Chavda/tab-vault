@@ -44,6 +44,11 @@ export function normalizeHost(input: string): string {
   return valid ? v : '';
 }
 
+function clampInt(v: unknown, min: number, max: number, fallback: number): number {
+  const n = Number(v);
+  return v !== null && v !== '' && Number.isFinite(n) ? Math.min(max, Math.max(min, Math.round(n))) : fallback;
+}
+
 /** Coerces anything (storage, imports, form input) into a valid Settings object. */
 export function sanitizeSettings(raw: unknown): Settings {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
@@ -62,6 +67,11 @@ export function sanitizeSettings(raw: unknown): Settings {
       ? Math.min(10, Math.max(2, Math.round(Number(r.minGroupSize))))
       : DEFAULT_SETTINGS.minGroupSize,
     warnDuplicates: typeof r.warnDuplicates === 'boolean' ? r.warnDuplicates : DEFAULT_SETTINGS.warnDuplicates,
+    dupeAction: r.dupeAction === 'switch' ? 'switch' : DEFAULT_SETTINGS.dupeAction,
+    archiveDays: clampInt(r.archiveDays, 0, 365, DEFAULT_SETTINGS.archiveDays),
+    backupDays: clampInt(r.backupDays, 0, 90, DEFAULT_SETTINGS.backupDays),
+    theme: r.theme === 'light' || r.theme === 'dark' ? r.theme : DEFAULT_SETTINGS.theme,
+    density: r.density === 'compact' ? 'compact' : DEFAULT_SETTINGS.density,
     groupRules: sanitizeGroupRules(r.groupRules),
   };
 }

@@ -1,5 +1,7 @@
 :root { --bg:#fff; --fg:#1a1a1a; --muted:#5b6472; --line:#e5e7eb; --accent:#4f46e5; }
-@media (prefers-color-scheme: dark) { :root { --bg:#16161a; --fg:#ececf1; --muted:#a1a8b5; --line:#2a2a31; --accent:#9aa5ff; } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) { --bg:#16161a; --fg:#ececf1; --muted:#a1a8b5; --line:#2a2a31; --accent:#9aa5ff; } }
+:root[data-theme='dark'] { --bg:#16161a; --fg:#ececf1; --muted:#a1a8b5; --line:#2a2a31; --accent:#9aa5ff; }
+select option { color: initial; }
 body { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; font: 14px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
 h1 { font-size: 20px; }
 fieldset { border: 1px solid var(--line); border-radius: 10px; margin: 16px 0; padding: 12px 16px; }
@@ -8,8 +10,9 @@ label { display: block; margin: 10px 0; }
 label.check { display: flex; gap: 8px; align-items: center; }
 small, .privacy { color: var(--muted); }
 input[type=number] { width: 90px; }
+select { display: block; margin-top: 4px; max-width: 100%; }
 code { background: color-mix(in srgb, var(--accent) 12%, transparent); padding: 1px 4px; border-radius: 4px; }
-input[type=number], textarea { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; font: inherit; }
+input[type=number], textarea, select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; font: inherit; }
 textarea { width: 100%; font-family: ui-monospace, monospace; }
 button { padding: 7px 14px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; cursor: pointer; font: inherit; }
 button:hover { border-color: var(--accent); }

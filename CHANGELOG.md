@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.3.0
+
+- **Stash.** Save a tab for later and close it in one click (Alt+Shift+S). A new Stash view lists them; click to reopen.
+- **Notes and tags** on any page, searchable (`#work`) and shown on tabs, the stash and saved results.
+- **Command palette** (Ctrl/Cmd+K, or type `>`): run any action by name. A shortcut list is one `?` away.
+- **Multi-select** with Ctrl/Cmd-click and Shift-click, then stash, group, save as a session or close.
+- **Sort tabs** by title, site or recent use (pinned tabs and groups keep their place), **merge windows**, and **move a tab to another window**.
+- **Panic** button (Alt+Shift+P): suspend every tab except the active one in each window.
+- **Tab groups are now saved** in sessions, workspaces and snapshots and come back when restored.
+- **Scheduled workspaces:** open a workspace at a set time on chosen days, in a new window.
+- **Archive stale tabs** (opt-in): tabs unopened for N days are saved into an Archive session and closed.
+- **Insights** view: counts, top sites and the tabs left alone longest.
+- **Duplicates:** opt in to switching to the existing tab instead of opening a copy.
+- **Rename** workspaces and sessions; **never suspend this site** from the tab menu or palette.
+- **Appearance:** light, dark or system theme and a compact density in Settings.
+- **Scheduled backups** to your Downloads folder, plus a "Back up now" button. Backups now include the stash and notes. Adds the `downloads` permission.
+- Experimental Firefox (MV3) build via `npm run build:firefox`; untested in Firefox itself.
+
 ## 1.2.0
 
 - **Recently closed tabs.** A new **Closed** view lists tabs and windows you closed lately; click one to reopen it. Adds the `sessions` permission, which only reads the browser's own list on your device.

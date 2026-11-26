@@ -26,6 +26,7 @@ Open source (MIT).
 - tabGroups: create and name tab groups for the smart grouping feature (group titles and colors only).
 - storage: save settings, sessions and workspaces locally; settings sync uses the browser's sync.
 - sessions: list recently closed tabs/windows and reopen them (read from the browser's own list; nothing is stored or sent).
+- downloads: save a backup file to the user's Downloads folder when they ask (or on their schedule); nothing is uploaded.
 - alarms: periodic idle check and snapshots (MV3 service workers cannot use timers).
 
 **Privacy policy URL:** link to PRIVACY.md in the repository.

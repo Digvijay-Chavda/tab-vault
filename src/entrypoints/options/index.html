@@ -37,6 +37,30 @@
     <fieldset>
       <legend>Duplicate tabs</legend>
       <label class="check"><input id="warndupes" type="checkbox" /> Show a badge on the TabVault icon when tabs in the same window have the same address</label>
+      <label>When I open a page that is already open in the same window
+        <select id="dupeaction">
+          <option value="badge">Just open it (the badge counts the duplicate)</option>
+          <option value="switch">Switch to the existing tab and close the new one</option>
+        </select>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Archive stale tabs</legend>
+      <label>Save and close tabs I have not opened for
+        <input id="archivedays" type="number" min="0" max="365" step="1" /> days <small>(0 turns it off)</small>
+      </label>
+      <p>They are saved into an "Archive" session you can restore from the Sessions tab. Pinned tabs, playing tabs, the active tab and your never-suspend sites are never archived.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Appearance</legend>
+      <label>Theme
+        <select id="theme"><option value="system">Match my system</option><option value="light">Light</option><option value="dark">Dark</option></select>
+      </label>
+      <label>Density
+        <select id="density"><option value="comfortable">Comfortable</option><option value="compact">Compact (one line per tab)</option></select>
+      </label>
     </fieldset>
 
     <fieldset>
@@ -46,8 +70,12 @@
 
     <fieldset>
       <legend>Backup</legend>
-      <p>Export sessions, workspaces and settings to a file, or import one. Importing adds to your existing data.</p>
+      <p>Export sessions, workspaces, stash, notes and settings to a file, or import one. Importing adds to your existing data.</p>
+      <label>Also save a backup file automatically every
+        <input id="backupdays" type="number" min="0" max="90" step="1" /> days <small>(0 turns it off; files go to your Downloads/TabVault folder)</small>
+      </label>
       <button id="export">Export backup…</button>
+      <button id="backupnow">Back up now</button>
       <button id="import">Import backup…</button>
       <input id="file" type="file" accept="application/json,.json" hidden />
     </fieldset>

@@ -1,5 +1,11 @@
 import { forget, getAll, seed, touch } from '../core/activity';
 import { findDuplicateIds } from '../core/duplicates';
+import { backupDue, backupNow, getLastBackup } from '../core/backup-schedule';
+import { dueSchedules, getFired, getSchedules, markFired, saveFired } from '../core/schedule';
+import { duplicateOf } from '../core/tab-plans';
+import { archiveStale, panic } from '../core/tab-actions';
+import { stashTabs } from '../core/stash';
+import { openWorkspaceInNewWindow } from '../core/workspaces';
 import { shouldSuspend } from '../core/rules';
 import { groupWindow } from '../core/grouping-apply';
 import { saveSnapshot } from '../core/sessions';
@@ -9,7 +15,29 @@ import { addSuspended } from '../core/stats';
 const SWEEP_ALARM = 'tabvault-sweep';
 const SNAPSHOT_ALARM = 'tabvault-snapshot';
 
+/** Opens workspaces whose scheduled time has arrived (in a new window; the current one is never touched). */
+async function runSchedules(): Promise<void> {
+  const schedules = await getSchedules();
+  if (schedules.length === 0) return;
+  const now = new Date();
+  let fired = await getFired();
+  for (const s of dueSchedules(schedules, fired, now)) {
+    fired = markFired(fired, s.workspaceId, now); // mark first: a failure must not reopen it every minute
+    await saveFired(fired);
+    await openWorkspaceInNewWindow(s.workspaceId).catch(() => undefined);
+  }
+}
+
+/** Slower housekeeping (every 15 minutes): archive stale tabs and write the scheduled backup file. */
+async function housekeeping(): Promise<void> {
+  const settings = await getSettings();
+  if (settings.autoSnapshots) await saveSnapshot();
+  await archiveStale().catch(() => undefined);
+  if (backupDue(await getLastBackup(), settings.backupDays, Date.now())) await backupNow().catch(() => undefined);
+}
+
 async function sweep(): Promise<void> {
+  await runSchedules().catch(() => undefined);
   const [settings, tabs, activity] = await Promise.all([getSettings(), chrome.tabs.query({}), getAll()]);
   const now = Date.now();
   let count = 0;
@@ -45,6 +73,16 @@ const scheduleBadge = () => {
   badgeTimer = setTimeout(() => void updateBadge().catch(() => undefined), 300);
 };
 
+// "Switch to the existing tab": opt-in. A page opened while an identical one is already open in the window
+// closes the new copy and focuses the old one.
+async function switchToExisting(tab: chrome.tabs.Tab): Promise<void> {
+  if ((await getSettings()).dupeAction !== 'switch' || tab.id === undefined) return;
+  const existing = duplicateOf(tab, await chrome.tabs.query({ windowId: tab.windowId }));
+  if (!existing?.id) return;
+  await chrome.tabs.update(existing.id, { active: true });
+  await chrome.tabs.remove(tab.id).catch(() => undefined);
+}
+
 // Auto-grouping: coalesce bursts of page loads into one pass per window, one window at a time.
 const pendingGroupWindows = new Set<number>();
 let groupChain: Promise<unknown> = Promise.resolve();
@@ -76,15 +114,14 @@ export default defineBackground(() => {
 
   chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === SWEEP_ALARM) void sweep();
-    if (alarm.name === SNAPSHOT_ALARM) {
-      void getSettings().then((s) => (s.autoSnapshots ? saveSnapshot() : undefined));
-    }
+    if (alarm.name === SNAPSHOT_ALARM) void housekeeping();
   });
 
   chrome.tabs.onActivated.addListener(({ tabId }) => void touch(tabId));
   chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
     if (info.status === 'complete' || info.audible) void touch(tabId);
     if (info.url || info.status === 'complete') scheduleBadge();
+    if (info.url) void switchToExisting(tab);
     // Only page loads trigger grouping; the group change itself fires a groupId update, which is ignored (no loop).
     if (info.status === 'complete' && tab.windowId !== undefined) {
       void getSettings().then((s) => (s.autoGroup ? scheduleAutoGroup(tab.windowId) : undefined));
@@ -93,6 +130,14 @@ export default defineBackground(() => {
   chrome.tabs.onRemoved.addListener((tabId) => {
     void forget(tabId);
     scheduleBadge();
+  });
+  chrome.commands.onCommand.addListener((command) => {
+    void (async () => {
+      const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (command === 'stash-tab' && active) await stashTabs([active]);
+      else if (command === 'panic') await panic();
+      else if (command === 'group-tabs' && active?.windowId !== undefined) await groupWindow(active.windowId);
+    })().catch(() => undefined);
   });
   chrome.tabs.onCreated.addListener(scheduleBadge);
   chrome.tabs.onAttached.addListener(scheduleBadge);

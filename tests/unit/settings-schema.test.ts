@@ -15,6 +15,16 @@ describe('normalizeHost', () => {
   ])('%j -> %j', (input, out) => expect(normalizeHost(input)).toBe(out));
 });
 
+describe('sanitizeSettings: new options', () => {
+  it('validates dupeAction, theme, density and day counts', () => {
+    const s = sanitizeSettings({ dupeAction: 'switch', theme: 'dark', density: 'compact', archiveDays: 400, backupDays: -3 });
+    expect(s).toMatchObject({ dupeAction: 'switch', theme: 'dark', density: 'compact', archiveDays: 365, backupDays: 0 });
+    expect(sanitizeSettings({ dupeAction: 'x', theme: 'neon', density: 'tiny', archiveDays: 'abc' })).toMatchObject({
+      dupeAction: 'badge', theme: 'system', density: 'comfortable', archiveDays: 0,
+    });
+  });
+});
+
 describe('sanitizeSettings', () => {
   it('defaults warnDuplicates on and respects an explicit false', () => {
     expect(sanitizeSettings({}).warnDuplicates).toBe(true);

@@ -1,6 +1,6 @@
 import { db } from '../storage/db';
 import { saveSnapshotOf } from './snapshot-of';
-import { toSavedTabs } from './sessions';
+import { groupInfo, regroup, toSavedTabs } from './sessions';
 import type { Workspace } from './types';
 
 const ACTIVE_KEY = 'activeWorkspaces'; // windowId -> workspaceId, in storage.session (window ids are per browser run)
@@ -26,7 +26,7 @@ export const listWorkspaces = () => db.workspaces.orderBy('name').toArray();
 
 export async function createWorkspace(name: string, fromWindowId?: number): Promise<Workspace> {
   const now = Date.now();
-  const tabs = fromWindowId === undefined ? [] : toSavedTabs(await chrome.tabs.query({ windowId: fromWindowId }));
+  const tabs = fromWindowId === undefined ? [] : toSavedTabs(await chrome.tabs.query({ windowId: fromWindowId }), await groupInfo());
   const ws: Workspace = { name: name.trim().slice(0, 60) || 'Workspace', createdAt: now, updatedAt: now, tabs };
   const id = (await db.workspaces.add(ws)) as number;
   ws.id = id;
@@ -42,7 +42,7 @@ export async function renameWorkspace(id: number, name: string): Promise<void> {
 
 /** Overwrites the workspace's saved tabs with what is open in the window right now. */
 export async function updateWorkspaceFromWindow(id: number, windowId: number): Promise<void> {
-  const tabs = toSavedTabs(await chrome.tabs.query({ windowId }));
+  const tabs = toSavedTabs(await chrome.tabs.query({ windowId }), await groupInfo());
   await db.workspaces.update(id, { tabs, updatedAt: Date.now() });
 }
 
@@ -73,6 +73,7 @@ export async function switchWorkspace(windowId: number, targetId: number): Promi
       const t = target.tabs[i]!;
       created.push(await chrome.tabs.create({ windowId, url: t.url, pinned: t.pinned, active: i === 0 }));
     }
+    await regroup(windowId, created.map((tab, i) => ({ tabId: tab.id, group: target.tabs[i]!.group })));
   }
   const oldIds = oldTabs.flatMap((t) => (t.id === undefined ? [] : [t.id]));
   if (oldIds.length) await chrome.tabs.remove(oldIds);
@@ -81,4 +82,19 @@ export async function switchWorkspace(windowId: number, targetId: number): Promi
     if (t.id !== undefined) await chrome.tabs.discard(t.id).catch(() => undefined);
   }
   await setActive(windowId, targetId);
+}
+
+/** Opens a workspace's tabs in a new window without touching the current one (used by schedules). */
+export async function openWorkspaceInNewWindow(id: number): Promise<boolean> {
+  const ws = await db.workspaces.get(id);
+  if (!ws || ws.tabs.length === 0) return false;
+  const win = await chrome.windows.create({ url: ws.tabs[0]!.url, focused: true });
+  if (win?.id === undefined) return false;
+  const created: Array<{ tabId: number | undefined; group?: (typeof ws.tabs)[number]['group'] }> = [{ tabId: win.tabs?.[0]?.id, group: ws.tabs[0]!.group }];
+  for (const t of ws.tabs.slice(1)) {
+    const tab = await chrome.tabs.create({ windowId: win.id, url: t.url, pinned: t.pinned, active: false });
+    created.push({ tabId: tab.id, group: t.group });
+  }
+  await regroup(win.id, created);
+  return true;
 }
