@@ -7,7 +7,7 @@ theme and density, shortcuts, Firefox build, scheduled backups) is already built
 
 ## Do first: close verification gaps
 
-1. **Publish 1.3.0**: tag and release (see `conventions.md`), then check the Release workflow and the zip.
+1. ~~Publish 1.3.0~~ done. Next release: follow `commands/release.md`.
 2. Test that a **schedule fires** and **auto-archive runs** end to end. Needs a way to inject time or a short test hook in
    `runSchedules()` / `archiveStale()`; keep the production path unchanged.
 3. Load the Firefox build in a real Firefox and fix what breaks (tab groups, `sessions`, badge, downloads). Then decide

@@ -7,7 +7,7 @@ _Snapshot: version 1.3.0 on `master`. Update this file whenever you ship._
 | Version | State |
 |---|---|
 | 1.2.0 | Released on GitHub (tag `v1.2.0`, zip attached). Popup UI, Closed view, duplicate badge. |
-| 1.3.0 | On `master` (package.json, changelog, manifest all say 1.3.0). **Not tagged or released yet.** See `commands/release.md`. |
+| 1.3.0 | **Released** on GitHub (tag `v1.3.0` at the commit that added `.claude/`, `tabvault-1.3.0-chrome.zip` attached, about 114 KB). Published via the manual Release workflow because tag pushes fail from the cloud sandbox. |
 
 Chrome Web Store: nothing published from here; `docs/STORE_LISTING.md` has the listing text and permission justifications.
 
@@ -47,7 +47,7 @@ Saved tabs keep their tab group (title and color) and regroup on restore (sessio
 | `npm run lint` | pass |
 | `npm test` | 93 unit tests in 11 files, pass |
 | `npm run build` + `npm run e2e` | 17 e2e steps, pass (run twice in a row) |
-| GitHub CI on `master` | passed on every push through the 1.2.0 work; the run for the 1.3.0 commit was still in progress when this was written, so check Actions |
+| GitHub CI on `master` | passed for the release commit (check, lint, test, build and e2e on a hosted runner). A run for the previous commit stayed listed as "in progress" in the API; it was stale, the later run superseded it |
 
 ### E2E coverage (`tests/e2e/smoke.mjs`, real Chromium with the extension loaded)
 
