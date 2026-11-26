@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Recently closed tabs.** A new **Closed** view lists tabs and windows you closed lately; click one to reopen it. Adds the `sessions` permission, which only reads the browser's own list on your device.
+- **Duplicate tab warning.** The toolbar icon shows a badge with how many tabs repeat another tab's address in the same window. Turn it off under Settings > Duplicate tabs.
 - **Toolbar popup replaces the side panel.** Clicking the TabVault icon (or Ctrl/Cmd+Shift+K) opens a compact popup; nothing docks beside your page any more. The `sidePanel` permission is gone, so the extension asks for less.
 - Redesigned UI: brand header with search icon, tab counts on every view, icon buttons, pills for active / suspended / pinned / playing / muted / duplicate tabs, themed light and dark.
 - Tab filters: All, Suspended, Playing, Pinned, Duplicates, each with a live count.

@@ -16,6 +16,11 @@ describe('normalizeHost', () => {
 });
 
 describe('sanitizeSettings', () => {
+  it('defaults warnDuplicates on and respects an explicit false', () => {
+    expect(sanitizeSettings({}).warnDuplicates).toBe(true);
+    expect(sanitizeSettings({ warnDuplicates: false }).warnDuplicates).toBe(false);
+    expect(sanitizeSettings({ warnDuplicates: 'no' }).warnDuplicates).toBe(true);
+  });
   it('returns defaults for garbage', () => {
     expect(sanitizeSettings(null)).toEqual(DEFAULT_SETTINGS);
     expect(sanitizeSettings('x')).toEqual(DEFAULT_SETTINGS);

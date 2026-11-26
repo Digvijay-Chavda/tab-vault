@@ -4,14 +4,15 @@ import { addSuspended, estimateMb, getStats } from '../../core/stats';
 import { findDuplicateIds } from '../../core/duplicates';
 import { groupWindow, ungroupWindow } from '../../core/grouping-apply';
 import { createIndex, search, type SearchDoc } from '../../core/search';
+import { listClosed, restoreClosed, timeAgo } from '../../core/closed';
 import { deleteSession, listSessions, restoreSession, saveCurrentWindow } from '../../core/sessions';
 import {
   createWorkspace, deleteWorkspace, getActiveWorkspaceId, listWorkspaces, switchWorkspace, updateWorkspaceFromWindow,
 } from '../../core/workspaces';
 
-type View = 'tabs' | 'workspaces' | 'sessions';
+type View = 'tabs' | 'workspaces' | 'sessions' | 'closed';
 type Filter = 'all' | 'suspended' | 'playing' | 'pinned' | 'duplicates';
-const VIEWS: View[] = ['tabs', 'workspaces', 'sessions'];
+const VIEWS: View[] = ['tabs', 'workspaces', 'sessions', 'closed'];
 const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: 'all', label: 'All' }, { id: 'suspended', label: 'Suspended' }, { id: 'playing', label: 'Playing' },
   { id: 'pinned', label: 'Pinned' }, { id: 'duplicates', label: 'Duplicates' },
@@ -60,6 +61,7 @@ const ICONS = {
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>',
   save: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',
   empty: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
 } as const;
 type IconName = keyof typeof ICONS;
@@ -302,6 +304,21 @@ async function renderSessions(): Promise<HTMLElement[]> {
   ];
 }
 
+async function renderClosed(): Promise<HTMLElement[]> {
+  const closed = await listClosed();
+  const rows = closed.map((c) =>
+    item({
+      title: c.title,
+      sub: c.kind === 'window' ? `${c.url} + ${c.tabs - 1} more · ${timeAgo(c.closedAt)}` : `${c.url} · ${timeAgo(c.closedAt)}`,
+      icon: c.favIconUrl,
+      pills: [{ text: c.kind === 'window' ? 'window' : 'tab' }],
+      onClick: async () => { await restoreClosed(c.sessionId); dismissPopup(); await render(); },
+      buttons: [iconButton('undo', c.kind === 'window' ? 'Restore window' : 'Restore tab', async () => { await restoreClosed(c.sessionId); dismissPopup(); await render(); })],
+    }),
+  );
+  return [section(`Recently closed (${closed.length}) — click to reopen`), rows.length ? list(...rows) : empty('Nothing closed recently.')];
+}
+
 async function renderSearch(query: string): Promise<HTMLElement[]> {
   const [tabs, sessions, wss] = await Promise.all([chrome.tabs.query({}), listSessions(), listWorkspaces()]);
   const docs: SearchDoc[] = [];
@@ -335,10 +352,12 @@ async function renderSearch(query: string): Promise<HTMLElement[]> {
 }
 
 async function renderStats(): Promise<void> {
-  const [stats, tabs, sessions, wss] = await Promise.all([getStats(), chrome.tabs.query({}), listSessions(), listWorkspaces()]);
+  const [stats, tabs, sessions, wss, closed] = await Promise.all([
+    getStats(), chrome.tabs.query({}), listSessions(), listWorkspaces(), listClosed().catch(() => []),
+  ]);
   const now = tabs.filter((t) => t.discarded).length;
   statsEl.textContent = `${now} suspended now (≈${estimateMb(now)} MB freed, estimate) · ${stats.suspendedTotal} suspended all-time`;
-  const counts: Record<View, number> = { tabs: tabs.length, workspaces: wss.length, sessions: sessions.length };
+  const counts: Record<View, number> = { tabs: tabs.length, workspaces: wss.length, sessions: sessions.length, closed: closed.length };
   for (const v of VIEWS) nav.querySelector(`[data-count=${v}]`)!.textContent = counts[v] ? String(counts[v]) : '';
 }
 
@@ -359,7 +378,7 @@ async function render(): Promise<void> {
   const token = ++renderToken;
   actions = [];
   const query = q.value.trim();
-  const nodes = query ? await renderSearch(query) : view === 'tabs' ? await renderTabs() : view === 'workspaces' ? await renderWorkspaces() : await renderSessions();
+  const nodes = query ? await renderSearch(query) : view === 'tabs' ? await renderTabs() : view === 'workspaces' ? await renderWorkspaces() : view === 'sessions' ? await renderSessions() : await renderClosed();
   if (token !== renderToken) return; // a newer render superseded this one
   const scroll = main.scrollTop;
   main.replaceChildren(...nodes);

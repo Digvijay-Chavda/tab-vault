@@ -11,6 +11,8 @@ export interface Settings {
   autoGroup: boolean;
   /** A site-based group is only created when at least this many tabs share it. */
   minGroupSize: number;
+  /** Show the number of duplicate tabs as a badge on the toolbar icon. */
+  warnDuplicates: boolean;
   /** User rules that name the group for a site; they win over built-in categories. */
   groupRules: GroupRule[];
 }
@@ -30,6 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoSnapshots: true,
   autoGroup: false,
   minGroupSize: 2,
+  warnDuplicates: true,
   groupRules: [],
 };
 

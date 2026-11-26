@@ -70,6 +70,7 @@ try {
     await panel.bringToFront();
   };
 
+  const badge = () => sw.evaluate(() => chrome.action.getBadgeText({}));
   const discarded = (title) => sw.evaluate(async (t) => (await chrome.tabs.query({})).find((x) => x.title?.includes(t))?.discarded, title);
 
   await step('lists open tabs', async () => {
@@ -97,8 +98,18 @@ try {
     const dup = await ctx.newPage(); await dup.goto(`${base}/alpha`);
     await panel.bringToFront();
     await panel.getByRole('button', { name: /Close duplicates \(1\)/ }).waitFor();
+    await until(async () => (await badge()) === '1'); // toolbar badge warns about the duplicate
     await panel.getByRole('button', { name: /Close duplicates/ }).click();
     await panel.getByRole('button', { name: 'Close duplicates (0)' }).waitFor();
+    await until(async () => (await badge()) === '');
+  });
+
+  await step('lists recently closed tabs', async () => {
+    await panel.getByRole('tab', { name: 'Closed' }).click();
+    await panel.getByRole('heading', { name: /^Recently closed \(/ }).waitFor();
+    await panel.getByText('Alpha Page').first().waitFor(); // the duplicate we just closed
+    await panel.getByRole('tab', { name: 'Tabs' }).click();
+    await panel.getByRole('heading', { name: /^Open tabs/ }).waitFor();
   });
 
   await step('saves a session and searches inside it', async () => {

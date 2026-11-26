@@ -61,6 +61,7 @@ export function sanitizeSettings(raw: unknown): Settings {
     minGroupSize: Number.isFinite(Number(r.minGroupSize))
       ? Math.min(10, Math.max(2, Math.round(Number(r.minGroupSize))))
       : DEFAULT_SETTINGS.minGroupSize,
+    warnDuplicates: typeof r.warnDuplicates === 'boolean' ? r.warnDuplicates : DEFAULT_SETTINGS.warnDuplicates,
     groupRules: sanitizeGroupRules(r.groupRules),
   };
 }

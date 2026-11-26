@@ -15,6 +15,7 @@ async function load(): Promise<void> {
   $<HTMLInputElement>('pinned').checked = s.suspendPinned;
   $<HTMLInputElement>('audible').checked = s.suspendAudible;
   $<HTMLInputElement>('snapshots').checked = s.autoSnapshots;
+  $<HTMLInputElement>('warndupes').checked = s.warnDuplicates;
   $<HTMLTextAreaElement>('whitelist').value = s.whitelist.join('\n');
   $<HTMLInputElement>('autogroup').checked = s.autoGroup;
   $<HTMLInputElement>('mingroup').value = String(s.minGroupSize);
@@ -27,6 +28,7 @@ $('save').addEventListener('click', async () => {
     suspendPinned: $<HTMLInputElement>('pinned').checked,
     suspendAudible: $<HTMLInputElement>('audible').checked,
     autoSnapshots: $<HTMLInputElement>('snapshots').checked,
+    warnDuplicates: $<HTMLInputElement>('warndupes').checked,
     whitelist: $<HTMLTextAreaElement>('whitelist').value.split('\n'),
     autoGroup: $<HTMLInputElement>('autogroup').checked,
     minGroupSize: Number($<HTMLInputElement>('mingroup').value),

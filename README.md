@@ -35,7 +35,8 @@ Suspend idle tabs, switch workspaces, restore sessions, and search everything yo
 | **Workspaces** | Named tab sets. Click to switch; the outgoing tabs are saved into the old workspace (or an auto snapshot) before anything is closed. |
 | **Sessions** | Save a window and restore it later. Automatic snapshots (latest 10 kept) protect against crashes and accidents. |
 | **Search** | Fuzzy search across open tabs, sessions and workspaces with ↑ ↓ Enter navigation. |
-| **Duplicates** | One click closes tabs whose URL is already open in the same window. |
+| **Duplicates** | The toolbar icon shows a badge with the number of duplicate tabs (turn it off in settings). One click closes tabs whose URL is already open in the same window. |
+| **Recently closed** | The Closed tab lists tabs and windows you closed lately; click to reopen them. |
 | **Backup** | Export/import sessions, workspaces and settings as JSON. Imports are validated and only http(s) URLs are accepted. |
 | **Sync** | Settings follow you via your browser's own sync (`chrome.storage.sync`), if enabled. |
 | **Theming and a11y** | Light/dark, keyboard friendly, ARIA roles. |
@@ -66,6 +67,7 @@ Chrome Web Store listing text and permission justifications are in [docs/STORE_L
 | `tabs` | Read tab titles/URLs for the list and search; suspend idle tabs |
 | `tabGroups` | Create and name tab groups for smart grouping (group titles and colors only) |
 | `storage` | Save settings locally (and via browser sync) |
+| `sessions` | List recently closed tabs/windows so you can reopen them |
 | `alarms` | Idle check every minute, snapshots every 15 minutes (MV3 workers can't use timers) |
 
 Read the full [privacy policy](PRIVACY.md).
