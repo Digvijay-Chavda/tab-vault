@@ -190,9 +190,11 @@ li.discarded .t b, li.discarded .fav { opacity: .55; }
 li .chip { font-size: 10px; line-height: 16px; padding: 0 7px; border-radius: 999px; color: #fff; flex: none; max-width: 84px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Per-row actions appear on hover / keyboard focus so the list stays calm. */
-.actions { display: none; gap: 2px; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); padding: 2px 2px 2px 14px; background: linear-gradient(90deg, transparent, var(--hover) 14px); animation: popIn .15s var(--ease) both; }
+.actions { display: none; gap: 2px; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); padding: 2px 2px 2px 22px; background: linear-gradient(90deg, transparent, var(--hover) 20px); animation: popIn .15s var(--ease) both; }
 li:hover .actions, li:focus-within .actions, li[aria-selected='true'] .actions { display: flex; }
 .meta { display: flex; align-items: center; gap: 4px; flex: none; }
+/* While the pointer is over a row, actions replace its meta badges instead of overlapping them, so clicks never land on hidden badge text. Keyboard focus/selection keep both, since there's no pointer to mis-click. */
+li:hover .meta { display: none; }
 .actions button { width: 26px; height: 26px; padding: 0; display: grid; place-items: center; border-color: transparent; color: var(--muted); }
 .actions button:hover { color: var(--fg); border-color: var(--line); background: var(--bg); transform: translateY(-1px) scale(1.06); }
 .actions button.danger:hover { color: var(--danger); border-color: var(--danger); }
