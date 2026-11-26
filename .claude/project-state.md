@@ -1,17 +1,18 @@
 # Project state
 
-_Snapshot: version 1.3.0 on `master`. Update this file whenever you ship._
+_Snapshot: version 1.3.1 on `master`. Update this file whenever you ship._
 
 ## Versions and release status
 
 | Version | State |
 |---|---|
 | 1.2.0 | Released on GitHub (tag `v1.2.0`, zip attached). Popup UI, Closed view, duplicate badge. |
+| 1.3.1 | **Released** (patch). Docs, store listing, privacy text, screenshots and `.claude/` only; extension behavior identical to 1.3.0. |
 | 1.3.0 | **Released** on GitHub (tag `v1.3.0` at the commit that added `.claude/`, `tabvault-1.3.0-chrome.zip` attached, about 114 KB). Published via the manual Release workflow because tag pushes fail from the cloud sandbox. |
 
 Chrome Web Store: nothing published from here; `docs/STORE_LISTING.md` has the listing text and permission justifications.
 
-## What is built (all in 1.3.0)
+## What is built (all in 1.3.0, unchanged in 1.3.1)
 
 Popup (`src/entrypoints/popup/`): six views (Tabs, Stash, Workspaces, Sessions, Closed, Insights) plus a Help view and a
 command palette (`>` prefix or Ctrl/Cmd+K).

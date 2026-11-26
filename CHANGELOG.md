@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.1
+
+- Documentation and screenshots brought up to date with 1.3.0: README (removed the outdated "tab groups are not saved" limitation, corrected the size, refreshed the architecture tree), the Web Store listing text and the privacy policy.
+- Fresh screenshots of every view (Tabs, Stash, Command palette, Workspaces, Sessions, Closed, Insights) and the full Settings page, without stale toast messages.
+- Added `.claude/` project notes for AI assistants (current state, architecture, conventions, roadmap, `/verify` and `/release` commands).
+- No change to extension behavior or permissions.
+
 ## 1.3.0
 
 - **Stash.** Save a tab for later and close it in one click (Alt+Shift+S). A new Stash view lists them; click to reopen.

@@ -47,6 +47,7 @@
   - Steps share one browser. A failing step can leave state (open tabs, search text) that makes later steps fail; fix the first
     failure before chasing the rest. Workspace steps assert exact tab counts, so close any extra tabs you create.
   - Run e2e twice after changing it; one early failure was transient and never diagnosed.
+  - `shot()` waits for the toast to clear before taking a screenshot and the settings shot is full-page; keep that so docs never show a message from an earlier step.
 
 ## Git, CI and releases
 

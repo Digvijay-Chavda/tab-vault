@@ -37,7 +37,12 @@ try {
   let [sw] = ctx.serviceWorkers();
   sw ??= await ctx.waitForEvent('serviceworker');
   const extId = new URL(sw.url()).host;
-  const shot = (page, name) => shots && page.screenshot({ path: path.join(root, 'docs/screenshots', `${name}.png`) });
+  // Wait for the toast to fade first so a screenshot never shows a message about some earlier step.
+  const shot = async (page, name, opts = {}) => {
+    if (!shots) return;
+    await page.waitForFunction(() => !document.getElementById('toast')?.textContent, null, { timeout: 6000 }).catch(() => {});
+    await page.screenshot({ path: path.join(root, 'docs/screenshots', `${name}.png`), ...opts });
+  };
 
   const blank = ctx.pages()[0];
   const alpha = await ctx.newPage(); await alpha.goto(`${base}/alpha`);
@@ -351,7 +356,7 @@ try {
     await opts.reload();
     assert.equal(await opts.inputValue('#idle'), '15');
     assert.equal(await opts.inputValue('#whitelist'), 'mail.example.com');
-    await shot(opts, 'settings');
+    await shot(opts, 'settings', { fullPage: true });
     const [dl] = await Promise.all([opts.waitForEvent('download'), opts.click('#export')]);
     const file = path.join(mkdtempSync(path.join(tmpdir(), 'tv-')), 'backup.json');
     await dl.saveAs(file);
