@@ -17,6 +17,7 @@ Suspend idle tabs, switch workspaces, restore sessions, and search everything yo
   <img src="docs/screenshots/tabs.png" width="23%" alt="Tabs view" />
   <img src="docs/screenshots/workspaces.png" width="23%" alt="Workspaces view" />
   <img src="docs/screenshots/sessions.png" width="23%" alt="Sessions view" />
+  <img src="docs/screenshots/closed.png" width="23%" alt="Recently closed view" />
 </p>
 
 ## Why TabVault

@@ -108,6 +108,7 @@ try {
     await panel.getByRole('tab', { name: 'Closed' }).click();
     await panel.getByRole('heading', { name: /^Recently closed \(/ }).waitFor();
     await panel.getByText('Alpha Page').first().waitFor(); // the duplicate we just closed
+    await shot(panel, 'closed');
     await panel.getByRole('tab', { name: 'Tabs' }).click();
     await panel.getByRole('heading', { name: /^Open tabs/ }).waitFor();
   });
