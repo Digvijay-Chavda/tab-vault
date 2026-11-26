@@ -34,6 +34,7 @@ Suspend idle tabs, switch workspaces, restore sessions, and search everything yo
 | **Smart grouping** | One click (or automatic, opt-in) groups tabs into native tab groups: your rules first, then categories (Dev, Mail, Video…), then by site. Pinned and already-grouped tabs are never touched. Runs entirely on-device, no AI service. |
 | **Workspaces** | Named tab sets. Click to switch; the outgoing tabs are saved into the old workspace (or an auto snapshot) before anything is closed. |
 | **Sessions** | Save a window and restore it later. Automatic snapshots (latest 10 kept) protect against crashes and accidents. |
+| **Tab list** | Filter open tabs (Suspended, Playing, Pinned, Duplicates) and pin, mute, suspend or close any tab from its row. Status labels show what each tab is doing. The popup remembers your last view. |
 | **Search** | Fuzzy search across open tabs, sessions and workspaces with ↑ ↓ Enter navigation. |
 | **Duplicates** | The toolbar icon shows a badge with the number of duplicate tabs (turn it off in settings). One click closes tabs whose URL is already open in the same window. |
 | **Recently closed** | The Closed tab lists tabs and windows you closed lately; click to reopen them. |
@@ -41,7 +42,7 @@ Suspend idle tabs, switch workspaces, restore sessions, and search everything yo
 | **Sync** | Settings follow you via your browser's own sync (`chrome.storage.sync`), if enabled. |
 | **Theming and a11y** | Light/dark, keyboard friendly, ARIA roles. |
 
-Shortcut: **Ctrl/Cmd + Shift + K** opens the panel.
+Shortcut: **Ctrl/Cmd + Shift + K** opens the TabVault popup.
 
 ## Install
 
@@ -96,7 +97,7 @@ npm run zip                          # store-ready zip in .output/
 src/
   entrypoints/
     background.ts     # MV3 service worker: alarms (idle sweep, snapshots), tab activity tracking
-    popup/            # Toolbar popup: Tabs / Workspaces / Sessions UI + search (plain TypeScript, textContent only)
+    popup/            # Toolbar popup: Tabs / Workspaces / Sessions / Closed views + search (plain TypeScript, textContent only)
     options/          # Settings, backup export/import
   core/
     rules.ts          # pure suspend decision (unit tested)
