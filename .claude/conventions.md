@@ -64,6 +64,9 @@
     fails with "refusing to merge unrelated histories". Fix: `git fetch --depth=2 origin <branch>`.
   - The edit tool requires the file to be read in the current session before editing; a file changed on disk by a checkout
     needs a re-read.
+  - GitHub CI occasionally hangs on the "Install Chromium for e2e" step (seen twice; healthy runs finish in about 70 s). Check
+    the run's jobs; if that step has run for several minutes, cancel the run and re-run it (`cancel_workflow_run`, then
+    `rerun_workflow_run`). The re-run passed both times. Also, a hung run can stay listed as "in progress" forever.
   - A permission classifier may block a command that bundles a release tag push with other work. Do the local parts, then stop
     and tell the owner what is blocked and why instead of working around it.
 
